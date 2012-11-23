@@ -1,10 +1,13 @@
 class Editable
-	attr_accessor :type, :how_find_hash, :label, :default, :required 
-	def initialize(type,how_find_hash,label,default,required)
-		@type=type
-		@how_find_hash=how_find_hash
+	attr_accessor :watir_element, :label, :default, :required
+	def initialize(watir_element,label,default,required)
+		@watir_element = watir_element
 		@label=label.to_sym
 		@default=default
 		@required=required
+	end
+
+	def required?
+		required
 	end
 end

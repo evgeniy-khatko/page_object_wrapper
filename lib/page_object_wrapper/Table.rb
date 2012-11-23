@@ -1,5 +1,4 @@
-require 'watir-webdriver'
-require 'Exceptions.rb'
+require 'Exceptions'
 
 class Table < Watir::Table
 	def initialize(accessor,*args)

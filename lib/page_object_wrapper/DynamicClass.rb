@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-require 'Exceptions.rb'
+require 'Exceptions'
 class DynamicClass
 
 	def metaclass

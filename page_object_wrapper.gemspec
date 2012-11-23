@@ -12,10 +12,11 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Wraps watir-webdriver with convenient testing interface.}
   gem.homepage      = "https://github.com/evgeniy-khatko/page_object_wrapper"
 	gem.add_dependency "watir-webdriver"
+	gem.add_development_dependency "rspec", ">= 2.0.0"
  
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.require_paths = ["lib"]
+  gem.require_paths = ["lib","lib/page_object_wrapper"]
 end

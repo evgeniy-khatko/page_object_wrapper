@@ -1,4 +1,3 @@
-require 'watir-webdriver'
 require 'Exceptions'
 
 class Pagination

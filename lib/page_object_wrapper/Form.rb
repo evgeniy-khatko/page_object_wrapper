@@ -1,11 +1,10 @@
-require 'watir-webdriver'
 require 'Editable'
 require 'Exceptions'
 require 'Submitter'
 class Form < Watir::Form
 	def initialize(current_page,target_page,accessor,*args)
 		super(accessor,extract_selector(args).merge(:tag_name => "form"))
-		@inputs=[]
+		@elements=[]
 		@accessor=accessor
 		@current_page=current_page
 		@target_page=target_page
@@ -13,25 +12,26 @@ class Form < Watir::Form
 	end
 
 	def editable(type,how_find_hash,label=type,default='Field data',required=false)
-		@inputs << Editable.new(type,how_find_hash,label,default,required)
+		watir_element = @accessor.send(type.to_sym,how_find_hash)
+		raise FormError.new('Element not found', 'editable', "TYPE=#{type.inspect}, HOW_FIND=#{how_find_hash.inspect}, PAGE=#{@current_page.class.name}") if not element.exists?
 		Form.send :define_method, label do
-			element = @accessor.send(type.to_sym,how_find_hash)
-			raise FormError.new('Element not found', 'editable', "TYPE=#{type.inspect}, HOW_FIND=#{how_find_hash.inspect}") if not element.exist?
+			watir_element
 		end
+		@elements << Editable.new(watir_element,label,default,required)
 	end
 
 	def submitter(type,how_find_hash,how_click_method = :click,*click_params)
 		# find submitter
 		@submit_element = Submitter.new(how_click_method,click_params)
 		@submit_element.watir_element = @accessor.send(type.to_sym,how_find_hash)
-		raise FormError.new('Element not found', 'submitter', "TYPE=#{type.inspect}, HOW_FIND=#{how_find_hash.inspect}") if not @submit_element.watir_element.exist?
+		raise FormError.new('Element not found', 'submitter', "TYPE=#{type.inspect}, HOW_FIND=#{how_find_hash.inspect}") if not @submit_element.watir_element.exists?
 	end
 
 	def submit(correct_submission_flag)
 		return_page = (correct_submission_flag==true)? @target_page : @current_page
 		if @submit_element.nil?
 			# submitter is not defined, applying regular form submission
-			super
+			super()
 			return return_page.new
 		else
 			# submitter defined, applying its submission method
@@ -45,56 +45,71 @@ class Form < Watir::Form
 		end
 	end
 
+	def default(label)
+		find_input(label).default
+	end
+
+	def each
+		@elements.each{|e|
+			yield e
+		}
+	end
+
+	def each_required
+		@elements.select{|f| f.required}.each{|e|
+			yield e
+		}
+	end
+
 	def fill_only(data_hash)
 		if data_hash.nil?
 			raise FormError.new('Invalid parameter','fill_only',data_hash)
 		else
 			data_hash.each_key{|label|
 				f=find_input(label)
-				@accessor.send(f.type.to_sym,f.how_find_hash).set(data_hash[label])
+				f.watir_element.set(data_hash[label])
 			}
 		end
+		self
 	end
 
 	def fill_all(except_hash=nil)
-		fill_inputs(@inputs,except_hash)
+		fill_elements(@elements,except_hash)
+		self
 	end
 
 	def fill_required(except_hash=nil)
-		fill_inputs(@inputs.select{|f| f.required},except_hash)
-	end
-
-	def default(label)
-		find_input(label).default
+		fill_elements(@elements.select{|f| f.required},except_hash)
+		self
 	end
 
 
 private
 	def find_input(label)
-		index=@inputs.collect(&:label).index(label)
+		label = label.to_sym
+		index=@elements.collect(&:label).index(label)
 		raise FormError.new('label not found','find_input',label) if index.nil?
-		@inputs[index]
+		@elements[index]
 	end
-	def fill_inputs(inputs,except_hash)
+	def fill_elements(elements,except_hash)
+		elements = @elements.clone
 		if not except_hash.nil?
 			if not except_hash.has_key?(:except)
-				raise FormError.new('Invalid parameter, must be :except=>"label or [label1,label2,...]"',"fill_inputs",inputs.inspect,except_hash.inspect)
+				raise FormError.new('Invalid parameter, must be :except=>"label or [label1,label2,...]"',"fill_elements",elements.inspect,except_hash.inspect)
 			else
-				if except_hash[:except].is_a?(String)
-					inputs.delete(find_input(except_hash[:except]))
+				if except_hash[:except].is_a?(String) or except_hash[:except].is_a?(Symbol)
+					elements.delete(find_input(except_hash[:except]))
 				elsif except_hash[:except].is_a?(Array)
 					except_hash[:except].each{|label|
-						inputs.delete(find_input(label))
+						elements.delete(find_input(label))
 					}
 				else
-					raise FormError.new('Invalid parameter',"fill_inputs",inputs.inspect,except_hash.inspect)
+					raise FormError.new('Invalid parameter',"fill_elements",elements.inspect,except_hash.inspect)
 				end
 			end
 		end
-		inputs.each{|f|
-			real_input=@accessor.send(f.type.to_sym,f.how_find_hash)
-			raise FormError.new("input id=#{id} not found","fill_inputs",inputs.inspect,except_hash.inspect) if not real_input.exists?
-			real_input.when_present.set(f.default)
+		elements.each{|field|
+			field.watir_element.when_present.set(field.default)
 		}
 	end
 end
