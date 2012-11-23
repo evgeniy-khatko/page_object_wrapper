@@ -99,6 +99,8 @@ Pending:
   has .find method which allows finding dynamically defined objects
   has .each method which allows navigating between objects
 
+*please look into specs for more detailed usage examples*
+
 ## Contributing
 
 1. Fork it
