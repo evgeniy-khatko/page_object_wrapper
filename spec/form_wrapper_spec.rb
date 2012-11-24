@@ -2,7 +2,7 @@
 require 'spec_helper'
 
 describe "Form wrapper" do
-  describe "form definition" do
+  describe "form definition", :code => 6..30 do
     let(:page_objects){
       class GoogleAdvancedSearchPage < PageObjectWrapper::Page
         attr_accessor :as_form
@@ -30,7 +30,7 @@ describe "Form wrapper" do
     }
 
 
-    it "is defined as #form(TargetPage, how_find_hash)" do
+    it "is defined as #form(TargetPage, how_find_hash)", :code => [13,25] do
       page_objects[:gadv_page_class].new(true).as_form.class.should eq(Form)
     end
 
@@ -40,7 +40,7 @@ describe "Form wrapper" do
       :label is used to reffer to the form field after definition
       default_value is used to populate fields with default test data
       required = true | false and indicates if the field is required
-    " do
+    ", :code =>  14..16 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       gadv_page.as_form.with_words.tag_name.should eq('input')
       gadv_page.as_form.with_words.name.should eq('as_q')
@@ -52,10 +52,10 @@ describe "Form wrapper" do
       how_find_hash is used to locate corresponding watir element on the page
       how_click_mehtod is used to tell Waitr the method which should be applied to click the submitter
       click_params set parameters for the how_click_mehtod
-    " do
+    ", :code => 17 do
     end
   end
-  describe "form usage" do
+  describe "form usage", :code => 59..84 do
     let(:page_objects){
       class GoogleAdvancedSearchPage < PageObjectWrapper::Page
         attr_accessor :as_form
@@ -77,8 +77,7 @@ describe "Form wrapper" do
         def initialize visit=false 
           super visit
           @find_form = form(GoogleSearchPage, {:action => '/search'}) 
-          @find_form.editable(:text_field, {:name => 'q'}, :search_what, '@find_form default value', true) 
-                                  
+          @find_form.editable(:text_field, {:name => 'q'}, :search_what, '@find_form default value', true)                                   
         end
       end
       {:gsearch_page_class => GoogleSearchPage, :gadv_page_class => GoogleAdvancedSearchPage}
@@ -88,7 +87,7 @@ describe "Form wrapper" do
       if flag = true than TargetPage instance is returned
       if flag = false than CurrentPage instance is returned
       if submitter is defined, than it's used to submit the form, otherwise standart Watir::Form submit is used
-    " do
+    ", :code => 91..95 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       gsearch_page = gadv_page.as_form.submit(true)
       gsearch_page.should be_a(GoogleSearchPage)
@@ -96,17 +95,17 @@ describe "Form wrapper" do
       gsearch_page_reloaded.should be_a(GoogleSearchPage)
     end
 
-    its "field's watir elements can be accessed by labels" do
+    it "field's watir elements can be accessed by labels", :code => 99..100 do
       gsearch_page = page_objects[:gsearch_page_class].new(true)
       gsearch_page.find_form.search_what.should be_a(Watir::TextField)
     end
 
-    its "fields default values set during form definition can be retrieved with #default(:label) method" do
+    it "fields default values set during form definition can be retrieved with #default(:label) method", :code => 104..105 do
       gsearch_page = page_objects[:gsearch_page_class].new(true)
       gsearch_page.find_form.default(:search_what).should eq('@find_form default value')
     end
 
-    it "has #each method which allows navigating between form fields" do
+    it "has #each method which allows navigating between form fields", :code => 110..112 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       gadv_page.as_form.each{|form_field|
         form_field.should be_a(Editable)
@@ -114,7 +113,7 @@ describe "Form wrapper" do
       }
     end
     
-    it "has #each_required method which allows navigating between form required fields (corresponding watir elements)" do
+    it "has #each_required method which allows navigating between form required fields", :code => 118..122 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       gadv_page.as_form.each_required{|form_field|
         form_field.should be_a(Editable)
@@ -125,7 +124,7 @@ describe "Form wrapper" do
 
     it "has #fill_only(:label => value) method which populated form's :label field with \'value\'
       method returns form object
-    " do
+    ", :code => 129..130 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       form = gadv_page.as_form.fill_only(:with_words => 'some value')
       gadv_page.as_form.with_words.value.should eq('some value')
@@ -135,7 +134,7 @@ describe "Form wrapper" do
     it "has #fill_all(:except => labels_array | label) method which populated all form's fields with default values
       if except_hash is not nil than provided fields are not populated
       method returns form object
-    " do
+    ", :code => 139..142 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       form = gadv_page.as_form.fill_all
       gadv_page.as_form.each{|field|
@@ -156,14 +155,14 @@ describe "Form wrapper" do
     it "has #fill_required(:except => labels_array | label) method which populated all required form's fields with default values
       if except_hash is not nil than provided fields are not populated
       method returns form object
-    " do
+    ", :code =>  165..172 do
       gadv_page = page_objects[:gadv_page_class].new(true)
       form = gadv_page.as_form.fill_required
       gadv_page.as_form.each_required{|field|
         field.watir_element.value.should eq(gadv_page.as_form.default(field.label))
       }
       gadv_page = page_objects[:gadv_page_class].new(true)
-      gadv_page.as_form.fill_all(:except => :with_words)
+      gadv_page.as_form.fill_required(:except => :with_words)
       gadv_page.as_form.each_required{|field|
         if field.label==:with_words
           field.watir_element.value.should eq ''

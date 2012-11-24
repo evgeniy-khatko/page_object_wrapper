@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'yaml'
 
-describe "TestData class" do
+describe "TestData class", :code => 5..16 do
 	let(:user1){
 "login: user1
 email: user1@example.com
@@ -14,7 +14,7 @@ email: user2@example.com
 password: secret2
 etc: other data"
 	}
-	it "is initialized with hash and generates dynamic attributes for an instance" do
+	it "is initialized with hash and generates dynamic attributes for an instance", :code => 18..22 do
 		dynamically_defined_user = PageObjectWrapper::TestData.new(YAML.load(user1))
 		dynamically_defined_user.login.should eq 'user1'
 		dynamically_defined_user.email.should eq 'user1@example.com'
@@ -22,16 +22,16 @@ etc: other data"
 		dynamically_defined_user.etc.should eq 'other data'
 	end
 
-	it "has .find method which allows finding dynamically defined objects" do
+	it "has .find method which allows finding dynamically defined objects", :code => 26..29 do
 		dynamically_defined_user1 = PageObjectWrapper::TestData.new(YAML.load(user1))
 		dynamically_defined_user2 = PageObjectWrapper::TestData.new(YAML.load(user2))
 		user1 = PageObjectWrapper::TestData.find(:login,'user1')
 		user1.email.should eq 'user1@example.com'
 	end
-	it "has .each method which allows navigating between objects" do
+	it "has .each method which allows navigating between objects", :code => 32..36 do
 		dynamically_defined_user1 = PageObjectWrapper::TestData.new(YAML.load(user1))
 		dynamically_defined_user2 = PageObjectWrapper::TestData.new(YAML.load(user2))
-		user1 = PageObjectWrapper::TestData.each{|user|
+		PageObjectWrapper::TestData.each{|user|
 			user.etc.should eq 'other data'
 		}
 	end
