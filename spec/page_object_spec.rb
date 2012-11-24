@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 require 'spec_helper'
 
-describe "##Page object" do
-  describe "#PageObjectWrapper" do
+describe "Page object" do
+  describe "PageObjectWrapper" do
     let(:google_search_page_class){
       class GoogleSearchPage < PageObjectWrapper::Page
         attr_accessor :find_form
@@ -47,7 +47,7 @@ describe "##Page object" do
     end
   end
 
-  describe "#GoogleSearchPage class instance in general" do
+  describe "GoogleSearchPage class instance in general" do
     let(:google_search_page_class){
       class GoogleSearchPage < PageObjectWrapper::Page
         attr_accessor :find_form
@@ -76,7 +76,7 @@ describe "##Page object" do
     end
   end
 
-  describe "#expected element" do
+  describe "expected element" do
   let(:google_search_with_wrong_expected_element_page_class){
     class NotGoogleSearchPage < PageObjectWrapper::Page
       attr_accessor :find_form
@@ -119,7 +119,7 @@ describe "##Page object" do
     end
   end
 
-  describe "#creation of a PageObject method" do
+  describe "creation of a PageObject method" do
     let(:pages_definition){
       class GoogleAdvancedSearchPage < PageObjectWrapper::Page
         attr_accessor :as_form

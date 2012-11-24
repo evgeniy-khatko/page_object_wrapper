@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 require 'spec_helper'
 
-describe "##Table wrapper" do
-  describe "#table definition" do
+describe "Table wrapper" do
+  describe "table definition" do
     before :all do
       PageObjectWrapper.domain = 'http://wiki.openqa.org'
     end
@@ -24,7 +24,7 @@ describe "##Table wrapper" do
       page.some_table.should be_a(Table)
     end
   end
-  describe "#table usage" do
+  describe "table usage" do
     before :all do
       PageObjectWrapper.domain = 'http://wiki.openqa.org'
     end

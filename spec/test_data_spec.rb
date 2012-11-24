@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'yaml'
 
-describe "##TestData class" do
+describe "TestData class" do
 	let(:user1){
 "login: user1
 email: user1@example.com

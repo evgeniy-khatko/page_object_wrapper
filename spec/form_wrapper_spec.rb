@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 require 'spec_helper'
 
-describe "##Form wrapper" do
-  describe "#form definition" do
+describe "Form wrapper" do
+  describe "form definition" do
     let(:page_objects){
       class GoogleAdvancedSearchPage < PageObjectWrapper::Page
         attr_accessor :as_form
@@ -55,7 +55,7 @@ describe "##Form wrapper" do
     " do
     end
   end
-  describe "#form usage" do
+  describe "form usage" do
     let(:page_objects){
       class GoogleAdvancedSearchPage < PageObjectWrapper::Page
         attr_accessor :as_form
