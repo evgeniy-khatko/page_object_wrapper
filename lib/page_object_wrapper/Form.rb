@@ -108,7 +108,7 @@ private
 				end
 			end
 		end
-		elements.each{|field|
+		elements.select{|e| e.respond_to?(:set)}.each{|field|
 			field.watir_element.when_present.set(field.default)
 		}
 	end
