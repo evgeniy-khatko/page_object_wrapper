@@ -20,7 +20,7 @@ class Form < Watir::Form
 		@elements << Editable.new(watir_element,label,default,required)
 	end
 
-	def submitter(type,how_find_hash,how_click_method = :click,*click_params)
+	def submitter(type,how_find_hash,how_click_method ='click',*click_params)
 		# find submitter
 		@submit_element = Submitter.new(how_click_method,click_params)
 		@submit_element.watir_element = @accessor.send(type.to_sym,how_find_hash)
@@ -39,7 +39,7 @@ class Form < Watir::Form
 				@submit_element.watir_element.send(@submit_element.how_click_method.to_sym,*@submit_element.click_params)
 			rescue Exception => e
 				puts "ORIGINAL ERROR: #{e.message}"
-				raise FormError.new('Submitter not clickable', "SUBMITTER: TYPE=#{@submit_element.type}, HOW_FIND=#{@submit_element.how_find_hash}", "CLICK_METHOD: #{@submit_element.how_click_mehtod}, CLICK_PARAMS: #{@submit_element.click_params}")
+				raise FormError.new('Error clicking submitter', "SUBMITTER: WATIR_ELEMENT=#{@submit_element.watir_element}, HOW_FIND=#{@submit_element.how_find_hash}", "CLICK_METHOD: #{@submit_element.how_click_mehtod}, CLICK_PARAMS: #{@submit_element.click_params}")
 			end
 			return return_page.new
 		end
