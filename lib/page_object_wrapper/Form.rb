@@ -39,7 +39,7 @@ class Form < Watir::Form
 				@submit_element.watir_element.send(@submit_element.how_click_method.to_sym,*@submit_element.click_params)
 			rescue Exception => e
 				puts "ORIGINAL ERROR: #{e.message}"
-				raise FormError.new('Error clicking submitter', "SUBMITTER: WATIR_ELEMENT=#{@submit_element.watir_element}, HOW_FIND=#{@submit_element.how_find_hash}", "CLICK_METHOD: #{@submit_element.how_click_mehtod}, CLICK_PARAMS: #{@submit_element.click_params}")
+				raise FormError.new('Error clicking submitter', "SUBMITTER: WATIR_ELEMENT=#{@submit_element.watir_element}", "CLICK_METHOD: #{@submit_element.how_click_mehtod}, CLICK_PARAMS: #{@submit_element.click_params}")
 			end
 			return return_page.new
 		end
