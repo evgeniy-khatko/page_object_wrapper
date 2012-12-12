@@ -1,13 +1,22 @@
 require 'spec_helper'
 
 describe "define_page_object" do
-  it "accepts two arguments - page_object label and a block" do
-  end
+  before :all{PageObjectWrapper.start_browser}
+  after :all{PageObjectWrapper.stop_browser}
 
-  it "creates new PageObject with a label*, locator* and uniq_element" do
+  let(:page_object){
+    PageObjectWrapper.define_page(:google_advanced) do
+      locator 'google.com/advanced_search'
+      uniq_element :name => 'as_q'
+    end
+  }
+
+  it "creates new PageObject instance with a label*, locator* and uniq_element" do
+    page_object.should be_a(PageObject)
   end
 
   it "pushes created PageObject instance to a PageObjectWrapper.pages array" do
+    PageObjectWrapper.pages.should include(page_object)
   end
 
   context "ElementsSet creation" do
