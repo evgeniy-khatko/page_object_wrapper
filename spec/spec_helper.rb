@@ -1,1 +1,1 @@
-require 'PageObjectWrapper'
+require "page_object_wrapper"
