@@ -4,6 +4,9 @@ require "version"
 require 'PageObject'
 
 module PageObjectWrapper
+
+
+
   @@driver = :firefox
   @@domain = nil
 
@@ -12,7 +15,8 @@ module PageObjectWrapper
   end
 
   def self.start_browser
-    PageObject.browser = Watir::Browser.new(@@driver)
+    #Selenium::WebDriver::Firefox.path='/opt/firefox/firefox'
+    PageObject.browser = Watir::Browser.new @@driver
   end
 
   def self.stop_browser
