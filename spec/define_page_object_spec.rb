@@ -21,6 +21,10 @@ describe "define_page_object" do
           button(:name => 'foo').click
         }
       end
+
+      table(:table_without_header) do
+        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+      end
     end
   }
 
@@ -39,7 +43,7 @@ describe "define_page_object" do
       its(:locator_value) { should be_a String }
     end
 
-    describe "uniq_element" do
+    describe "page_object uniq_element" do
       its(:uniq_element_value) { should be_a Hash }
       its(:uniq_element_value) { should == {:text => 'Testing display of HTML elements'} }
     end
@@ -79,7 +83,7 @@ describe "define_page_object" do
       its(:locator_value) { should be_a Hash }
     end
 
-    describe "food" do
+    describe "element food" do
       it { should respond_to(:fresh_food) }
       it { should respond_to(:fresh_food_value) }
       it { should respond_to(:missing_food) }
@@ -88,11 +92,11 @@ describe "define_page_object" do
       its(:fresh_food_value) { should be_a String}
       its(:missing_food_value) { should be_a String}
 
-      describe "default values" do
+      describe "food default values" do
         its(:fresh_food_value){ should eq('undefined fresh food') }
       end
 
-      describe "user defined values" do
+      describe "food user defined values" do
         its(:missing_food_value){ should eq('some missing food') }
       end
     end
@@ -107,7 +111,7 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
-    describe "next_page" do
+    describe "action next_page" do
       it { should respond_to(:next_page) }
       it { should respond_to(:next_page_value) }
       it { should respond_to(:fire) }
@@ -117,36 +121,40 @@ describe "define_page_object" do
     end
   end
 
- # context "table" do
- #   subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_with_header)] }
+  context "table" do
+    subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
 
- #   it { should be_a(Table) }
+    it { should be_a(Table) }
 
- #   describe "label" do
- #     it_should_behave_like "label"
- #   end
+    describe "table label" do
+      it_should_behave_like "a label"
+    end
+  
+    describe "element locator" do
+      it_should_behave_like "a locator"
+      its(:locator_value) { should be_a Hash }
+    end
 
- #   describe "header" do
- #     it { should respond_to(:header) }
- #     it { should respond_to(:header_value) }
+    describe "table header" do
+      it { should respond_to(:header) }
+      it { should respond_to(:header_value) }
 
- #     its(:header) { should be_a Proc }
- #     its(:header_value) { should be_a Array}
+      its(:header_value) { should be_a Array}
 
- #     describe "default header" do
- #       subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
- #       let(:default_header){
- #         h = []
- #         100.times {|i| h << 'column_'+i.to_s}
- #         h
- #       }
- #       its(:header) { should eq(default_header)}
- #     end
+      describe "default header" do
+        subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
+        let(:default_header){
+          h = []
+          100.times {|i| h << 'column_'+i.to_s}
+          h
+        }
+        its(:header_value) { should eq(default_header)}
+      end
 
- #     describe "user defined header" do
- #     end
- #   end
- # end
+      describe "user defined header" do
+      end
+    end
+  end
 
   #describe "pagination" do
   #end

@@ -1,9 +1,11 @@
-require 'ElementsSet'
-require 'Element'
-require 'Action'
 require 'Dsl'
 require 'Exceptions'
 include PageObjectWrapper
+
+require 'ElementsSet'
+require 'Element'
+require 'Action'
+require 'Table'
 
 class PageObject < Dsl
   attr_reader :esets, :elements, :actions, :tables, :paginations
@@ -140,6 +142,13 @@ class PageObject < Dsl
     a.instance_eval(&block)
     @actions << a
     a
+  end
+
+  def table(label, &block)
+    t = Table.new(label)
+    t.instance_eval(&block)
+    @tables << t
+    t
   end
 
 private
