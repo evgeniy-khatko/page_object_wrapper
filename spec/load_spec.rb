@@ -1,21 +1,75 @@
 require 'spec_helper'
 
-describe "PageObjectWrapper.load" do
-  it "checks that each defined element has :label attribute" do
-  end
+describe "PageObjectWrapper.compile" do
+  let(:define_page_with_lots_of_errors){
+    PageObjectWrapper.define_page('label') do
+      locator ''
+      uniq_element 'not a hash'
 
-  it "raises PageObjectWrapper::Load error if any element does not have label" do
-  end
+      elements_set('not a symbol') do
+      end
 
-  it "checks that each PageObject, Table, ElementsSet, Element and Pagination instance has a :locator attribute" do
-  end
+      elements_set(:bad_elements) do
+        element('') do
+        end
+        element(:e) do
+          locator 'not a hash'
+        end
+        element(:e) do
+          locator {}
+        end
+      end
 
-  it "raises PageObjectWrapper::Load error if any instance does not have locator" do
-  end
+      action('') do
+        fire 'not a proc'
+      end
 
-  it "checks that each action has a :next_page attribute" do
-  end
+      table('') do
+      end
+      table(:t) do
+        header 'not an array'
+      end
 
-  it "raises PageObjectWrapper::Load error if any Action instance does not have next_page" do
+      pagination('') do
+        locator 'not a hash'
+      end
+    end
+  }
+
+  describe "page load" do
+    it "raises PageObjectWrapper::Load error with all errors described" do
+      define_page_with_lots_of_errors
+      expect{ PageObjectWrapper.load }.to raise_error(
+        PageObjectWrapper::Load,
+        "
+        page_object(label):
+        'label' not a Symbol
+        '' not a meaningful String
+        'not a hash' not a meaningful Hash
+        page_object(label) -> elements_set(not a symbol):
+        'not a symbol' not a Symbol
+        is empty
+        page_object(label) -> elements_set(:bad_elements) -> element():
+        '' not a Symbol
+        is empty
+        page_object(label) -> elements_set(:bad_elements) -> element(:e):
+        'not a hash' not a meaningful Hash
+        page_object(label) -> elements_set(:bad_elements) -> element(:e):
+        already defined
+        {} not a meaningful Hash
+        page_object(label) -> elements_set(:bad_elements) -> action():
+        '' not a Symbol
+        'not a proc' not a Proc
+        page_object(label) -> elements_set(:bad_elements) -> table():
+        '' not a Symbol
+        is empty
+        page_object(label) -> elements_set(:bad_elements) -> table(:t):
+        'not an array' not an Array
+        page_object(label) -> elements_set(:bad_elements) -> pagination():
+        '' not a Symbol
+        'not a hash' not a Hash
+        "
+      )
+    end
   end
 end

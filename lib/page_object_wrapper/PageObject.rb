@@ -6,10 +6,11 @@ require 'ElementsSet'
 require 'Element'
 require 'Action'
 require 'Table'
+require 'Pagination'
+require 'known_elements'
 
-class PageObject < Dsl
-  attr_reader :esets, :elements, :actions, :tables, :paginations
-  dsl_attr_accessor :locator, :uniq_element
+class PageObject < DslElementWithLocator
+  attr_reader :esets, :elements, :actions, :tables, :paginations, :uniq_element_type, :uniq_element_hash
   @@browser = nil
   @@pages = []
   @@current_page = nil
@@ -24,8 +25,8 @@ class PageObject < Dsl
     
   def initialize(label)
     super label
-    @locator = nil
-    @uniq_element = nil
+    @uniq_element_type = 'element'
+    @uniq_element_hash = {}
     @esets = []
     @elements = []
     @actions = []
@@ -36,6 +37,10 @@ class PageObject < Dsl
   # lazy evaluated calls of real watir elements are handled by :method_missing
   def method_missing(method_name, *args)
     case 
+      when KNOWN_ELEMENTS.include?(method_name.to_s.gsub(/^uniq_/,''))
+        # page_object.uniq_xxx(hash)
+        @uniq_element_type = method_name.to_s.gsub(/^uniq_/,'').to_sym
+        @uniq_element_hash = args[0]
       when has_eset?(method_name)
         # page_object.some_elements_set
         eset = eset_for(method_name)
@@ -76,6 +81,9 @@ class PageObject < Dsl
   def respond_to?(method_sym, include_private = false)
     method_name = method_sym.to_s
     case 
+      when KNOWN_ELEMENTS.include?(method_name.gsub(/^uniq_/,''))
+        # page_object.uniq_xxx(hash)
+        true
       when has_eset?(method_name)
         # page_object.some_elements_set
         true
@@ -112,8 +120,8 @@ class PageObject < Dsl
     url += @@domain if page_object.locator_value[0]=='/'
     url += page_object.locator_value
     @@browser.goto url
-    watir_uniq_element = @@browser.element page_object.uniq_element_value
-    raise PageObjectWrapper::UnmappedPageObject, label if not watir_uniq_element.present?
+    watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
+    raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url}" if not watir_uniq_element.present?
     @@current_page = page_object
   end
 
@@ -151,6 +159,13 @@ class PageObject < Dsl
     t
   end
 
+
+  def pagination(label, &block)
+    p = Pagination.new(label)
+    p.instance_eval(&block)
+    @paginations << p
+    p
+  end
 private
 
   def self.find_page_object(l)
@@ -158,11 +173,11 @@ private
   end
   
   def return_watir_element(e)
-    @@browser.element e.locator_value
+    @@browser.send e.type, e.locator_value
   end
 
   def return_array_of_watir_elements(eset)
-    eset.elements.collect{|e| @@browser.element(e.locator_value)}
+    eset.elements.collect{|e| @@browser.send(e.type, e.locator_value)}
   end
 
   def feed_elements(elements, food_type=nil)
@@ -170,8 +185,8 @@ private
     raise PageObjectWrapper::UnknownFoodType if not FOOD_TYPES.include?(food_type)
     elements.each{|e|
       food = e.send (food_type.to_s+'_value').to_sym
-      watir_element = @@browser.element e.locator_value
-      case watir_element.to_subtype
+      watir_element = @@browser.send e.type, e.locator_value
+      case watir_element
         when Watir::CheckBox
           watir_element.set
         when Watir::Radio
@@ -187,6 +202,14 @@ private
         end
     }
   end
+
+  def fire_action(a)
+  end
+
+  def select_from_table(table, header, where)
+  end
+
+
 
   def labeled(ary)
     ary.collect(&:label_value)

@@ -1,13 +1,14 @@
 require 'Dsl'
-class Element < Dsl
-  dsl_attr_accessor :locator, :fresh_food, :missing_food
+class Element < DslElementWithLocator
+  attr_reader :type
+  dsl_attr_accessor :fresh_food, :missing_food
 
   DEFAULT_FRESH_FOOD = 'undefined fresh food'
   DEFAULT_MISSING_FOOD = 'undefined missing food'
 
-  def initialize(label)
+  def initialize(label, type)
     super label
-    @locator = nil
+    @type = type
     @fresh_food = DEFAULT_FRESH_FOOD
     @missing_food = DEFAULT_MISSING_FOOD
   end

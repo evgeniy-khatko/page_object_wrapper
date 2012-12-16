@@ -9,7 +9,7 @@ class Class
     end
   end
 end
-class Dsl
+class DslElement
   dsl_attr_accessor :label
 
   def initialize label
@@ -18,5 +18,14 @@ class Dsl
 protected
   def to_tree(*args)
     args.collect(&:label_value).join(" -> ")
+  end
+end
+
+class DslElementWithLocator < DslElement
+  dsl_attr_accessor :locator
+
+  def initialize label
+    super label
+    @locator = nil
   end
 end

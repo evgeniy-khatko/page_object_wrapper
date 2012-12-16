@@ -1,5 +1,5 @@
 require 'Dsl'
-class Action < Dsl
+class Action < DslElement
   attr_reader :fire_block
   dsl_attr_accessor :next_page
 

@@ -15,7 +15,6 @@ module PageObjectWrapper
   end
 
   def self.start_browser
-    #Selenium::WebDriver::Firefox.path='/opt/firefox/firefox'
     PageObject.browser = Watir::Browser.new @@driver
   end
 
@@ -39,6 +38,45 @@ module PageObjectWrapper
     page.instance_eval(&block)
     PageObject.pages << page
     page
+  end
+
+  def self.load
+    PageObject.pages.each{|p|
+      p.validate_label
+      p.validate_locator
+      p.validate_uniq_element
+
+      p.esets.each{|eset|
+        eset.validate_label
+        eset.validate_uniqueness
+        eset.each{|e|
+          e.validate_label
+          e.validate_locator
+          e.validate_uniqueness
+        }
+      }
+
+      p.actions.each{|a|
+        a.validate_action_label
+        a.validate_action_next_page
+        a.validate_action_fire_proc
+        a.validate_uniqueness
+      }
+
+      p.tables.each{|t|
+        t.validate_label
+        t.validate_locator
+        t.validate_uniqueness
+      }
+
+      p.paginations{|pag|
+        pag.validate_pagination_label
+        pag.validate_pagination_locator    
+        pag.validate_uniqueness
+      }
+
+      p.validate_uniqueness
+    }
   end
 
   def self.domain=val

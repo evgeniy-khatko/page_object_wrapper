@@ -6,10 +6,10 @@ describe "define_page_object" do
   let(:page_object){
     PageObjectWrapper.define_page(:some_test_page) do
       locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
-      uniq_element :text => 'Testing display of HTML elements'
+      uniq_h1 :text => 'Testing display of HTML elements'
 
       elements_set(:test_elements) do
-        element(:text_field) do
+        text_field(:text_field) do
           locator :id => 'f1'
           missing_food 'some missing food'
         end
@@ -24,6 +24,10 @@ describe "define_page_object" do
 
       table(:table_without_header) do
         locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+      end
+
+      pagination(:some_pagination) do
+        locator :xpath => ''
       end
     end
   }
@@ -44,8 +48,8 @@ describe "define_page_object" do
     end
 
     describe "page_object uniq_element" do
-      its(:uniq_element_value) { should be_a Hash }
-      its(:uniq_element_value) { should == {:text => 'Testing display of HTML elements'} }
+      its(:uniq_element_type) { should eq :h1 }
+      its(:uniq_element_hash) { should == {:text => 'Testing display of HTML elements'} }
     end
 
     specify { subject.esets.collect(&:label_value).should include(:test_elements)}
@@ -156,7 +160,18 @@ describe "define_page_object" do
     end
   end
 
-  #describe "pagination" do
-  #end
+  describe "pagination" do
+    subject { page_object.paginations[page_object.paginations.collect(&:label_value).index(:some_pagination)] }
 
+    it { should be_a(Pagination) }
+
+    describe "pagination label" do
+      it_should_behave_like "a label"
+    end
+  
+    describe "pagination locator" do
+      it_should_behave_like "a locator"
+      its(:locator_value) { should be_a Hash }
+    end
+  end
 end
