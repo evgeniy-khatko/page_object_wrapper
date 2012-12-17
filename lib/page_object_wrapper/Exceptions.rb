@@ -3,4 +3,5 @@ module PageObjectWrapper
   class UnableToFeedObject < StandardError; end
   class UnknownPageObject < StandardError; end
   class UnmappedPageObject < StandardError; end
+  class Load < StandardError; end
 end

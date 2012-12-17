@@ -54,12 +54,20 @@ describe "define_page_object" do
 
     specify { subject.esets.collect(&:label_value).should include(:test_elements)}
     it { should respond_to(:test_elements) }
+    it { should respond_to(:feed_test_elements) }
 
     specify { subject.elements.collect(&:label_value).should include(:text_field)}
     it { should respond_to(:text_field) }
 
     specify { subject.actions.collect(&:label_value).should include(:press_cool_button)}
     it { should respond_to(:fire_press_cool_button) }
+
+    specify { subject.tables.collect(&:label_value).should include(:table_without_header)}
+    it { should respond_to(:select_from_table_without_header) }
+
+    specify { subject.paginations.collect(&:label_value).should include(:some_pagination)}
+    it { should respond_to(:some_pagination_each) }
+    it { should respond_to(:some_pagination_open) }
   end
 
 
@@ -97,7 +105,7 @@ describe "define_page_object" do
       its(:missing_food_value) { should be_a String}
 
       describe "food default values" do
-        its(:fresh_food_value){ should eq('undefined fresh food') }
+        its(:fresh_food_value){ should eq('default fresh food') }
       end
 
       describe "food user defined values" do

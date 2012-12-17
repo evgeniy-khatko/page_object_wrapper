@@ -20,8 +20,8 @@ class PageObject < DslElementWithLocator
   FEED_SET = Regexp.new(/^feed_([\w_]+)$/)
   FIRE_ACTION = Regexp.new(/^fire_([\w_]+)$/)
   SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
-  PAGINATION_EACH = Regexp.new(/^each_([\w_]+)$/)
-  PAGINATION_OPEN = Regexp.new(/^open_([\w_]+)$/)
+  PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
+  PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
     
   def initialize(label)
     super label
@@ -51,11 +51,11 @@ class PageObject < DslElementWithLocator
         return_watir_element(element)
       when FEED_ALL.match(method_name)
         # page_object.feed_all(:fresh_food)
-        feed_elements(@elements, args)
+        feed_elements(@elements, *args)
       when (FEED_SET.match(method_name) and has_eset?($1))
         # page_object.feed_some_elements_set(:fresh_food)
         eset = eset_for($1)
-        feed_elements(eset.elements, args)
+        feed_elements(eset.elements, *args)
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
         a = action_for($1)
@@ -68,7 +68,7 @@ class PageObject < DslElementWithLocator
         # page_object.each_pagination
         pagination = pagination_for($1)
         run_each_subpage(pagination, args)
-      when (PAGINATION_OPEN.match(method_name) and has_paginations?($1))
+      when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
         # page_object.open_padination(1)
         pagination = pagination_for($1)
         open_subpage(pagination, args)
@@ -105,7 +105,7 @@ class PageObject < DslElementWithLocator
       when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
         # page_object.each_pagination
         true
-      when (PAGINATION_OPEN.match(method_name) and has_paginations?($1))
+      when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
         # page_object.open_padination(1)
         true
       else
@@ -123,6 +123,10 @@ class PageObject < DslElementWithLocator
     watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
     raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url}" if not watir_uniq_element.present?
     @@current_page = page_object
+  end
+
+  def self.current_page
+    @@current_page
   end
 
   def self.pages
@@ -166,6 +170,57 @@ class PageObject < DslElementWithLocator
     @paginations << p
     p
   end
+
+  def validate
+    output = []
+    output << "\tpage_object #{label_value.inspect} already defined\n" if labeled(@@pages).count(label_value) > 1
+    output << "\tlabel #{label_value.inspect} not a Symbol\n" if not label_value.is_a?(Symbol)
+    output << "\tlocator #{locator_value.inspect} not a meaningful String\n" if not locator_value.is_a?(String) or locator_value.empty?
+    @esets.each{|eset|
+      eset_output = []
+      eset_output << "\telements_set #{eset.label_value.inspect} already defined\n" if labeled(@esets).count(eset.label_value) > 1
+      eset_output << "\tlabel #{eset.label_value.inspect} not a Symbol\n" if not eset.label_value.is_a?(Symbol)
+      eset_output.unshift "elements_set(#{eset.label_value.inspect}):\n" if not eset_output.empty?
+      output += eset_output
+      eset.elements.each{|e|
+        element_output = []
+        element_output << "\t\telement #{e.label_value.inspect} already defined\n" if labeled(eset.elements).count(e.label_value) > 1
+        element_output << "\t\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
+        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash\n" if not e.locator_value.is_a?(Hash) or e.locator_value.empty?
+        element_output.unshift "\telement(#{e.label_value.inspect}):\n" if not element_output.empty?
+        output += element_output       
+      }
+    }
+    @actions.each{|a|
+      action_output = []
+      action_output << "\taction #{a.label_value.inspect} already defined\n" if labeled(@actions).count(a.label_value) > 1
+      action_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
+      action_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
+      action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      action_output << "\tfire event is not a Proc\n" if not a.fire_block.is_a?(Proc)
+      action_output.unshift "action(#{a.label_value.inspect}):\n" if not action_output.empty?
+      output += action_output
+    }
+    @tables.each{|t|
+      table_output = []
+      table_output << "\ttable #{t.label_value.inspect} already defined\n" if labeled(@tables).count(t.label_value) > 1
+      table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
+      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash\n" if not t.locator_value.is_a?(Hash) or t.locator_value.empty?
+      table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
+      output += table_output
+    }
+    @paginations.each{|p|
+      pagination_output = []
+      pagination_output << "\tpagination #{p.label_value.inspect} already defined\n" if labeled(@paginations).count(p.label_value) > 1
+      pagination_output << "\tlabel #{p.label_value.inspect} not a Symbol\n" if not p.label_value.is_a?(Symbol)
+      pagination_output << "\tlocator #{p.locator_value.inspect} not a meaningful Hash\n" if not p.locator_value.is_a?(Hash) or p.locator_value.empty?
+      pagination_output.unshift "pagination(#{p.label_value.inspect}):\n" if not pagination_output.empty?
+      output += pagination_output
+    }
+    output.unshift "page_object(#{label_value.inspect}):\n" if not output.empty?
+    output
+  end
+
 private
 
   def self.find_page_object(l)
@@ -182,25 +237,35 @@ private
 
   def feed_elements(elements, food_type=nil)
     food_type ||= :fresh_food
-    raise PageObjectWrapper::UnknownFoodType if not FOOD_TYPES.include?(food_type)
+    raise PageObjectWrapper::UnknownFoodType, food_type.inspect if not FOOD_TYPES.include?(food_type)
     elements.each{|e|
       food = e.send (food_type.to_s+'_value').to_sym
       watir_element = @@browser.send e.type, e.locator_value
       case watir_element
         when Watir::CheckBox
-          watir_element.set
+          watir_element.when_present.set
         when Watir::Radio
-          watir_element.set
+          watir_element.when_present.set
         when Watir::Select
-          watir_element.select food
+          begin
+            watir_element.when_present.select food
+          rescue Watir::Exception::NoValueFoundException => e
+            if food_type == :missing_food
+              # proceed to next element if missing_food is not found in select list
+              next
+            else
+              raise e
+            end
+          end
         else
           if watir_element.respond_to?(:set)
-            watir_element.set food
+            watir_element.when_present.set food
           else
             raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, eset, e)
           end
         end
     }
+    self
   end
 
   def fire_action(a)
@@ -208,7 +273,6 @@ private
 
   def select_from_table(table, header, where)
   end
-
 
 
   def labeled(ary)

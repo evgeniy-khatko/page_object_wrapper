@@ -19,6 +19,10 @@ protected
   def to_tree(*args)
     args.collect(&:label_value).join(" -> ")
   end
+
+  def validate_label
+
+  end
 end
 
 class DslElementWithLocator < DslElement

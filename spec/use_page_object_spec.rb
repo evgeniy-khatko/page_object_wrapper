@@ -1,49 +1,72 @@
 require 'spec_helper'
-describe "feed_xxx method" do
-  before(:all){PageObjectWrapper.start_browser}
-  after(:all){PageObjectWrapper.stop_browser}
-  let(:some_test_page){PageObjectWrapper.open_page(:some_test_page)}
+require 'shared_examples'
 
-  it "is created after an ElementsSet with a label xxx has been created" do
-    some_test_page.should respond_to(:feed_test_elements)
-  end
+describe "usage of created pages" do
+  before(:all){
+    @b = Watir::Browser.new
+    PageObjectWrapper.use_browser @b
+    PageObjectWrapper.load(File.dirname(__FILE__)+'/../good_pages')
+  }
+  after(:all){PageObjectWrapper.browser.close}
 
-  it "takes one argument - type of the food being fed (:missing_food, :fresh_food)" do
-    begin
-      some_test_page.feed_test_elements(:first_arg, :second_arg)
-    rescue Exception => e
-      e.should be_a ArgumentError
-    end
-  end
+  describe "page_object.feed_xxx" do
 
-  describe "performing actions on all elements of the xxx" do
-    before(:all){
-      PageObjectWrapper.start_browser
-      test_page = PageObjectWrapper.open_page(:some_test_page)
-      some_test_page.feed_test_elements(:fresh_food)
-    }
-    after(:all){PageObjectWrapper.stop_browser}
-
-    it "set element if element is Watir::CheckBox or Watir::Radio" do
-      some_test_page.checkbox.should be_set
-      some_test_page.radio.should be_set
+    it "returns current page object" do
+      tp = PageObjectWrapper.open_page(:some_test_page)
+      tp.feed_test_elements.should eq(tp)
     end
 
-    it "select(provided_food) if element is Watir::Select" do
-      some_test_page.select_list.should be_selected("one")
+    context "argument = :fresh_food" do
+      it "populates all xxx elements with :fresh_food" do
+        tp = PageObjectWrapper.current_page
+        tp.feed_test_elements(:fresh_food)
+        @b.text_field(:id=>'f1').value.should eq 'some fresh food'
+        @b.textarea(:id=>'f2').value.should eq 'default fresh food'
+        @b.select(:id=>'f10').value.should eq "one\n"
+        @b.select(:id=>'f11').value.should eq "one\n"
+        @b.checkbox(:id=>'f5').should be_set
+        @b.radio(:id=>'f3').should be_set
+      end
     end
 
-    it "set(provided_food) in other cases, if element respond_to(:set)" do
+    context "argument = nil" do
+      it "populates all xxx elements with :fresh_food" do
+        tp = PageObjectWrapper.current_page
+        tp.feed_test_elements
+        @b.text_field(:id=>'f1').value.should eq 'some fresh food'
+        @b.textarea(:id=>'f2').value.should eq 'default fresh food'
+        @b.select(:id=>'f10').value.should eq "one\n"
+        @b.select(:id=>'f11').value.should eq "one\n"
+        @b.checkbox(:id=>'f5').should be_set
+        @b.radio(:id=>'f3').should be_set
+      end
     end
 
-    it "raises PageObjectWrapper::UnableToFeedObject exception otherwise" do
+    context "argument = :missing_food" do
+      it "populates all xxx elements with :missing_food" do
+        tp = PageObjectWrapper.open_page(:some_test_page)
+        tp.feed_test_elements(:missing_food)
+        @b.text_field(:id=>'f1').value.should eq 'some missing food'
+        @b.textarea(:id=>'f2').value.should eq 'default missing food'
+        @b.select(:id=>'f10').value.should eq "three\n"
+        @b.select(:id=>'f11').value.should eq "two (default)\n"
+        @b.checkbox(:id=>'f5').should be_set
+        @b.radio(:id=>'f3').should be_set
+      end
     end
-  end
 
-  it "feeds element with regular (default) food if provided food is not set for the element" do
-  end
+    context "fresh food is not found in select list" do
+      it "raises Watir Watir::Exception::NoValueFoundException" do
+        atp = PageObjectWrapper.open_page(:another_test_page)
+        expect{atp.feed_test_elements}.to raise_error(Watir::Exception::NoValueFoundException)
+      end
+    end
+    context "missing food is not found in select list" do
+      it "continues execution" do
+        atp = PageObjectWrapper.current_page
+        atp.feed_test_elements(:missing_food).should eq(atp)
+      end
+    end
 
-  it "returns PageObject instance it's being called from" do
   end
-end
 end

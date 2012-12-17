@@ -10,4 +10,3 @@ shared_examples_for "a locator" do
   it { should respond_to(:locator) }
   it { should respond_to(:locator_value)}
 end
-

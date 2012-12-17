@@ -20,7 +20,10 @@ describe "PageObjectWrapper.open_page" do
     end
   }
   
-  before(:all){ @b = PageObjectWrapper.start_browser }
+  before(:all){ 
+    @b = Watir::Browser.new
+    PageObjectWrapper.use_browser @b 
+  }
 
   before(:each){
     define_page_object
@@ -28,7 +31,7 @@ describe "PageObjectWrapper.open_page" do
     define_page_object_with_local_path
   }
 
-  after(:all){ PageObjectWrapper.stop_browser }
+  after(:all){ PageObjectWrapper.browser.close }
 
   it "raises following errors" do        
     expect{ PageObjectWrapper.open_page(:first_arg, :second_arg) }.to raise_error(ArgumentError)

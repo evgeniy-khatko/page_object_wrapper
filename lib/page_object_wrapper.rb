@@ -5,32 +5,19 @@ require 'PageObject'
 
 module PageObjectWrapper
 
-
-
-  @@driver = :firefox
   @@domain = nil
+  @@browser = nil
 
   def self.domain=val
     @@domain=val
   end
 
-  def self.start_browser
-    PageObject.browser = Watir::Browser.new @@driver
+  def self.use_browser b
+    PageObject.browser = b
   end
 
-  def self.stop_browser
-    if not PageObject.browser.nil?
-      PageObject.browser.close
-      PageObject.browser.quit
-    end
-  end
-
-  def self.driver=val
-    @@driver=val
-  end
-
-  def self.wait_interval=val
-    PageObject.browser.driver.manage.timeouts.implicit_wait= val
+  def self.browser
+    PageObject.browser
   end
 
   def self.define_page(label, &block)
@@ -40,43 +27,22 @@ module PageObjectWrapper
     page
   end
 
-  def self.load
-    PageObject.pages.each{|p|
-      p.validate_label
-      p.validate_locator
-      p.validate_uniq_element
+  def self.current_page
+    PageObject.current_page
+  end
 
-      p.esets.each{|eset|
-        eset.validate_label
-        eset.validate_uniqueness
-        eset.each{|e|
-          e.validate_label
-          e.validate_locator
-          e.validate_uniqueness
-        }
-      }
-
-      p.actions.each{|a|
-        a.validate_action_label
-        a.validate_action_next_page
-        a.validate_action_fire_proc
-        a.validate_uniqueness
-      }
-
-      p.tables.each{|t|
-        t.validate_label
-        t.validate_locator
-        t.validate_uniqueness
-      }
-
-      p.paginations{|pag|
-        pag.validate_pagination_label
-        pag.validate_pagination_locator    
-        pag.validate_uniqueness
-      }
-
-      p.validate_uniqueness
+  def self.load(path_to_pages='.')
+    processed = 0
+    Dir.glob("#{path_to_pages}/*_page.rb"){|fn|
+      processed +=1
+      require fn
     }
+    raise PageObjectWrapper::Load, "No *_page.rb files found in #{path_to_pages}" if processed.zero?
+    output = []
+    PageObject.pages.each{|p|
+      output += p.validate
+    }
+    raise PageObjectWrapper::Load, output.join if not output.empty?
   end
 
   def self.domain=val
