@@ -1,19 +1,42 @@
 require 'spec_helper'
 require 'shared_examples'
 
-describe "usage of created pages" do
-  before(:all){
-    @b = Watir::Browser.new
-    PageObjectWrapper.use_browser @b
-    PageObjectWrapper.load(File.dirname(__FILE__)+'/../good_pages')
-  }
-  after(:all){PageObjectWrapper.browser.close}
+describe "page_object.feed_xxx" do
+  context "browser is closed" do
+    before(:all){
+      begin
+        PageObjectWrapper.load('./good_pages')
+      rescue
+      end
+    }
 
-  describe "page_object.feed_xxx" do
+    it "raises PageObjectWrapper::BrowserNotFound" do
+      tp = PageObjectWrapper.receive_page(:some_test_page)
+      expect{ tp.feed_test_elements}.to raise_error(PageObjectWrapper::BrowserNotFound)
+    end
+  end
+
+  context "browser is opened" do
+    before(:all){
+      @b = Watir::Browser.new
+      PageObjectWrapper.use_browser @b
+      begin
+        PageObjectWrapper.load('./good_pages')
+      rescue
+      end
+    }
+    after(:all){PageObjectWrapper.browser.close}
 
     it "returns current page object" do
       tp = PageObjectWrapper.open_page(:some_test_page)
       tp.feed_test_elements.should eq(tp)
+    end
+    
+    context "xxx not found among current_page element_sets" do
+      it "raises NoMethodError" do
+        tp = PageObjectWrapper.current_page
+        expect{tp.feed_empty_set}.to raise_error(NoMethodError)
+      end
     end
 
     context "argument = :fresh_food" do
@@ -67,6 +90,5 @@ describe "usage of created pages" do
         atp.feed_test_elements(:missing_food).should eq(atp)
       end
     end
-
   end
 end

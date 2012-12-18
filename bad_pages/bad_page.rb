@@ -18,14 +18,13 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
     end
   end
 
-  action('') do
-    fire{'mailformed proc'}
+  action('',nil) do
   end
 
   table('') do
   end
   table(:some_table) do
-    header 'table header'
+    header []
   end
 
   pagination('') do

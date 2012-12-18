@@ -59,19 +59,19 @@ class PageObject < DslElementWithLocator
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
         a = action_for($1)
-        fire_action(a, args)
+        fire_action(a, *args)
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
         table = table_for($1)
-        select_from_table(table, args)
+        select_from_table(table, *args)
       when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
         # page_object.each_pagination
         pagination = pagination_for($1)
-        run_each_subpage(pagination, args)
+        run_each_subpage(pagination, *args)
       when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
         # page_object.open_padination(1)
         pagination = pagination_for($1)
-        open_subpage(pagination, args)
+        open_subpage(pagination, *args)
       else
         super
     end
@@ -114,6 +114,7 @@ class PageObject < DslElementWithLocator
   end
 
   def self.map_current_page label
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     url = ''
@@ -149,9 +150,8 @@ class PageObject < DslElementWithLocator
     eset
   end
 
-  def action(label, &block)
-    a = Action.new(label)
-    a.instance_eval(&block)
+  def action(label, next_page, &block)
+    a = Action.new(label, next_page, &block)
     @actions << a
     a
   end
@@ -173,7 +173,8 @@ class PageObject < DslElementWithLocator
 
   def validate
     output = []
-    output << "\tpage_object #{label_value.inspect} already defined\n" if labeled(@@pages).count(label_value) > 1
+    # commented out; already defined pages will e redifined with new definitions
+    raise PageObjectWrapper::Load, "\tpage_object #{label_value.inspect} already defined\n" if labeled(@@pages).count(label_value) > 1
     output << "\tlabel #{label_value.inspect} not a Symbol\n" if not label_value.is_a?(Symbol)
     output << "\tlocator #{locator_value.inspect} not a meaningful String\n" if not locator_value.is_a?(String) or locator_value.empty?
     @esets.each{|eset|
@@ -197,7 +198,7 @@ class PageObject < DslElementWithLocator
       action_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
       action_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
       action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
-      action_output << "\tfire event is not a Proc\n" if not a.fire_block.is_a?(Proc)
+      action_output << "\tfire event is not a Proc\n" if not a.fire_block_value.is_a?(Proc)
       action_output.unshift "action(#{a.label_value.inspect}):\n" if not action_output.empty?
       output += action_output
     }
@@ -206,6 +207,7 @@ class PageObject < DslElementWithLocator
       table_output << "\ttable #{t.label_value.inspect} already defined\n" if labeled(@tables).count(t.label_value) > 1
       table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
       table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash\n" if not t.locator_value.is_a?(Hash) or t.locator_value.empty?
+      table_output << "\theader #{t.header_value.inspect} not a meaningful Array\n" if not t.header_value.is_a?(Array) or t.header_value.empty?
       table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
       output += table_output
     }
@@ -236,6 +238,7 @@ private
   end
 
   def feed_elements(elements, food_type=nil)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     food_type ||= :fresh_food
     raise PageObjectWrapper::UnknownFoodType, food_type.inspect if not FOOD_TYPES.include?(food_type)
     elements.each{|e|
@@ -268,10 +271,47 @@ private
     self
   end
 
-  def fire_action(a)
+  def fire_action(a, *args)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    @@browser.instance_exec args, &a.fire_block_value
+    self.class.find_page_object(a.next_page_value)
   end
 
-  def select_from_table(table, header, where)
+  def select_from_table(table, header, where=nil)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    t = @@browser.table(table.locator_value)
+    raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
+    raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
+    search_for_index = table.header_value.index(header)
+    found = nil
+
+    if not where.nil?
+      raise ArgumentError, "#{where.inspect} not a meaningful Hash" if not where.is_a? Hash or where.empty?
+      raise ArgumentError, "#{where.inspect} has more than 1 keys" if not where.keys.length == 1
+      raise ArgumentError, "#{where.keys.first.inspect} not a Symbol" if not where.keys.first.is_a? Symbol
+      raise ArgumentError, "#{where.keys.first.inspect} not in table header" if not table.header_value.include? where.keys.first
+      raise ArgumentError, "#{where.values.first.inspect} not a meaningful String or Regexp" if not (where.values.first.is_a? String or where.values.first.is_a? Regexp or where.values.first.to_s != '')
+      search_in_index = table.header_value.index(where.keys.first)
+      search_value = where.values.first
+      t.rows.each{|r|
+        if search_value.is_a? String
+          found = r.cells[search_for_index] if r.cells[search_in_index].text == search_value
+        else # must be Regexp
+          found = r.cells[search_for_index] if not search_value.match(r.cells[search_in_index].text)
+        end
+      }
+    else # where == nil
+      found = t.rows.last.cells[search_for_index]
+    end
+    found
+  end
+
+  def each_pagination
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+  end
+
+  def open_padination n
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
   end
 
 

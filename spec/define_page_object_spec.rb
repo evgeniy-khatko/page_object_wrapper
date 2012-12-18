@@ -2,36 +2,13 @@ require 'spec_helper'
 require 'shared_examples'
 
 describe "define_page_object" do
-
-  let(:page_object){
-    PageObjectWrapper.define_page(:some_test_page) do
-      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
-      uniq_h1 :text => 'Testing display of HTML elements'
-
-      elements_set(:test_elements) do
-        text_field(:text_field) do
-          locator :id => 'f1'
-          missing_food 'some missing food'
-        end
-      end
-
-      action(:press_cool_button) do
-        next_page :test_page_with_table
-        fire{
-          button(:name => 'foo').click
-        }
-      end
-
-      table(:table_without_header) do
-        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
-      end
-
-      pagination(:some_pagination) do
-        locator :xpath => ''
-      end
+  let!(:page_object){
+    begin
+      PageObjectWrapper.load('./good_pages')
+    rescue
     end
+    PageObjectWrapper.receive_page(:some_test_page)
   }
-
 
   context "page_object" do
     subject { page_object }
@@ -56,14 +33,15 @@ describe "define_page_object" do
     it { should respond_to(:test_elements) }
     it { should respond_to(:feed_test_elements) }
 
-    specify { subject.elements.collect(&:label_value).should include(:text_field)}
-    it { should respond_to(:text_field) }
+    specify { subject.elements.collect(&:label_value).should include(:tf)}
+    it { should respond_to(:tf) }
 
     specify { subject.actions.collect(&:label_value).should include(:press_cool_button)}
     it { should respond_to(:fire_press_cool_button) }
 
     specify { subject.tables.collect(&:label_value).should include(:table_without_header)}
     it { should respond_to(:select_from_table_without_header) }
+    it { should respond_to(:select_from_table_with_header) }
 
     specify { subject.paginations.collect(&:label_value).should include(:some_pagination)}
     it { should respond_to(:some_pagination_each) }
@@ -82,7 +60,7 @@ describe "define_page_object" do
   end
 
   context "element" do
-    subject { page_object.elements[page_object.elements.collect(&:label_value).index(:text_field)] }
+    subject { page_object.elements[page_object.elements.collect(&:label_value).index(:tf)] }
     
     it { should be_a(Element) }
 
@@ -105,7 +83,7 @@ describe "define_page_object" do
       its(:missing_food_value) { should be_a String}
 
       describe "food default values" do
-        its(:fresh_food_value){ should eq('default fresh food') }
+        its(:fresh_food_value){ should eq('some fresh food') }
       end
 
       describe "food user defined values" do
@@ -124,12 +102,11 @@ describe "define_page_object" do
     end
 
     describe "action next_page" do
-      it { should respond_to(:next_page) }
       it { should respond_to(:next_page_value) }
-      it { should respond_to(:fire) }
+      it { should respond_to(:fire_block_value) }
 
       its(:next_page_value){ should eq(:test_page_with_table) }
-      its(:fire) { should be_a Proc }
+      its(:fire_block_value) { should be_a Proc }
     end
   end
 

@@ -1,15 +1,11 @@
 require 'Dsl'
 class Action < DslElement
-  attr_reader :fire_block
-  dsl_attr_accessor :next_page
+  attr_reader :fire_block_value, :next_page_value
 
-  def initialize(label)
+  def initialize(label, next_page, &block)
     super label
-    @fire_block = nil
-  end
-
-  def fire(&block)
-    @fire_block = proc{block}
+    @next_page_value = next_page
+    @fire_block_value = block
   end
 end
 

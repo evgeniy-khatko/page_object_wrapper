@@ -6,4 +6,7 @@ PageObjectWrapper.define_page(:test_page_with_table) do
   table(:test_table) do
     locator :index => 0
   end
+
+  elements_set(:empty_set) do
+  end
 end

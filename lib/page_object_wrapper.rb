@@ -53,6 +53,10 @@ module PageObjectWrapper
     @@domain
   end
 
+  def self.receive_page(label)
+    PageObject.find_page_object(label)
+  end
+
   def self.open_page(label)
     PageObject.map_current_page label
   end

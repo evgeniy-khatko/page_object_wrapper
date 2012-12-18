@@ -29,15 +29,22 @@ PageObjectWrapper.define_page(:some_test_page) do
     radio(:rb){ locator :id => 'f3' }
   end
 
-  action(:press_cool_button) do
-    next_page :test_page_with_table
-    fire{
-      button(:name => 'foo').click
-    }
+  action(:press_cool_button, :test_page_with_table) do
+    button(:name => 'foo').when_present.click
+  end
+
+  action(:fill_textarea, :some_test_page) do |fill_with|
+    data = (fill_with.empty?)? 'Default data' : fill_with
+    textarea(:id => 'f2').set data
   end
 
   table(:table_without_header) do
     locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+  end
+
+  table(:table_with_header) do
+    locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+    header [:contry, :total_area, :land_area]
   end
 
   pagination(:some_pagination) do

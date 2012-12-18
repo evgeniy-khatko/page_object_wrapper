@@ -10,6 +10,7 @@ describe "PageObjectWrapper.load" do
       begin
         PageObjectWrapper.load(File.dirname(__FILE__)+'/../bad_pages')
       rescue Exception => e
+        #puts e.message
         e.should be_a(PageObjectWrapper::Load)
         e.message.should == 'page_object("some_page_with_lost_of_errors"):
 	label "some_page_with_lost_of_errors" not a Symbol
@@ -34,6 +35,7 @@ table(""):
 	locator nil not a meaningful Hash
 table(:some_table):
 	locator nil not a meaningful Hash
+	header [] not a meaningful Array
 pagination(""):
 	label "" not a Symbol
 	locator "pagination locator" not a meaningful Hash

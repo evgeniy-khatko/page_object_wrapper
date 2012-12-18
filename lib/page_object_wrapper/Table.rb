@@ -8,7 +8,7 @@ class Table < DslElementWithLocator
   def initialize(label)
     super label
     h = []
-    DEFAULT_HEADER_COLLUMNS_NUMBER.times { |i| h << DEFAULT_HEADER_COLLUMNS_PREFIX+i.to_s }
+    DEFAULT_HEADER_COLLUMNS_NUMBER.times { |i| h << (DEFAULT_HEADER_COLLUMNS_PREFIX+i.to_s).to_sym }
     @header = h
   end
 end

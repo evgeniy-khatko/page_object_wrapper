@@ -4,4 +4,5 @@ module PageObjectWrapper
   class UnknownPageObject < StandardError; end
   class UnmappedPageObject < StandardError; end
   class Load < StandardError; end
+  class BrowserNotFound < StandardError; end
 end
