@@ -41,7 +41,7 @@ describe "page_object.select_from_xxx" do
         expect{ tp.select_from_table_without_header(:column_1, { :nonexistent_column => 'some value' }) }.to raise_error ArgumentError, ":nonexistent_column not in table header"
       end
       it "raises ArgumentError if second_arg's value not meaningful a String or Regexp" do
-        expect{ tp.select_from_table_without_header(:column_1, { :column_2 => Array.new }) }.to raise_error ArgumentError, "[] not a meaningful String or Regexp"
+        expect{ tp.select_from_table_without_header(:column_1, { :column_2 => Array.new }) }.to raise_error ArgumentError, "[] not a String or Regexp"
       end
       it "raises Watir::Exception::UnknownObjectException if requested for non existing column" do
         expect{ tp.select_from_table_without_header(:column_3).text }.to raise_error(Watir::Exception::UnknownObjectException)
@@ -60,11 +60,22 @@ describe "page_object.select_from_xxx" do
       context "found by String" do
         it "returns found cells" do
           tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
-          tp.select_from_table_without_header(:column_1).text.should eq '449,964'
-          tp.select_from_table_without_header(:column_2).text.should eq '410,928'
+          tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
+        end
+        it "returns nil" do
+          tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
+          tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
         end
       end
       context "found by Regexp" do
+        it "returns found cells" do
+          tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
+          tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
+        end
+        it "returns nil" do
+          tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
+          tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
+        end
       end
     end
   end

@@ -290,14 +290,16 @@ private
       raise ArgumentError, "#{where.inspect} has more than 1 keys" if not where.keys.length == 1
       raise ArgumentError, "#{where.keys.first.inspect} not a Symbol" if not where.keys.first.is_a? Symbol
       raise ArgumentError, "#{where.keys.first.inspect} not in table header" if not table.header_value.include? where.keys.first
-      raise ArgumentError, "#{where.values.first.inspect} not a meaningful String or Regexp" if not (where.values.first.is_a? String or where.values.first.is_a? Regexp or where.values.first.to_s != '')
+      raise ArgumentError, "#{where.values.first.inspect} not a String or Regexp" if not (where.values.first.is_a? String or where.values.first.is_a? Regexp)
       search_in_index = table.header_value.index(where.keys.first)
       search_value = where.values.first
       t.rows.each{|r|
         if search_value.is_a? String
           found = r.cells[search_for_index] if r.cells[search_in_index].text == search_value
-        else # must be Regexp
-          found = r.cells[search_for_index] if not search_value.match(r.cells[search_in_index].text)
+        elsif search_value.is_a? Regexp
+          found = r.cells[search_for_index] if search_value.match(r.cells[search_in_index].text)
+        else
+          raise ArgumentError, "#{search_value} not a Regexp or String"
         end
       }
     else # where == nil
