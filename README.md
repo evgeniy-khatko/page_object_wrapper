@@ -167,7 +167,7 @@ tp is a :some\_test\_page object opened in the browser
 *preconditions*  
 tp is a :some\_test\_page object opened in the browser  
 its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
-    page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )  
+      page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )    
 correct arguments are:  
 :column1 is a column value from which you want to receive   
 :column2 is a column which is used to get specific row   
