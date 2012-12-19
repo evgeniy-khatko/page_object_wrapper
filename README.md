@@ -24,7 +24,7 @@ Or install it yourself as:
 
 ### Basic usecase is following
 1. Define page object with PageObjectWrapper.define\_page
-2. Use defined page object inside your tests with usefull page_\object #methods
+2. Use defined page object inside your tests with usefull page\_object #methods
 
 ### Basic principles of a PageObjectWrapper
 - there are following objects: page_object elements_set with elements, table, action, pagination
@@ -34,7 +34,7 @@ Or install it yourself as:
 - a label identifies the object
 
 Here in the structure of PageObjectWrapper:
-[<img src="https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png">](https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png)
+![PageObjectWrapper scheme](evgeniy-khatko.github.com/page_object_wrapper/img/scheme.png)
 
 ### Examples
 
