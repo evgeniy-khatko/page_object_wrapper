@@ -21,6 +21,8 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
   action('',nil) do
   end
 
+  action_alias('',nil){ action 'unknown action'}
+
   table('') do
   end
   table(:some_table) do

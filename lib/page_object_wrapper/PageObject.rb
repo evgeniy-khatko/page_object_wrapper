@@ -5,12 +5,13 @@ include PageObjectWrapper
 require 'ElementsSet'
 require 'Element'
 require 'Action'
+require 'Alias'
 require 'Table'
 require 'Pagination'
 require 'known_elements'
 
 class PageObject < DslElementWithLocator
-  attr_reader :esets, :elements, :actions, :tables, :paginations, :uniq_element_type, :uniq_element_hash
+  attr_reader :esets, :elements, :actions, :aliases, :tables, :paginations, :uniq_element_type, :uniq_element_hash
   @@browser = nil
   @@pages = []
   @@current_page = nil
@@ -30,6 +31,7 @@ class PageObject < DslElementWithLocator
     @esets = []
     @elements = []
     @actions = []
+    @aliases = []
     @tables = []
     @paginations = []
   end
@@ -59,6 +61,10 @@ class PageObject < DslElementWithLocator
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
         a = action_for($1)
+        fire_action(a, *args)
+      when (FIRE_ACTION.match(method_name) and has_alias?($1))
+        # page_object.fire_some_action
+        a = alias_for($1)
         fire_action(a, *args)
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
@@ -97,6 +103,9 @@ class PageObject < DslElementWithLocator
         # page_object.feed_some_elements_set(:fresh_food)
         true
       when (FIRE_ACTION.match(method_name) and has_action?($1))
+        # page_object.fire_some_action
+        true
+      when (FIRE_ACTION.match(method_name) and has_alias?($1))
         # page_object.fire_some_action
         true
       when (SELECT_FROM.match(method_name) and has_table?($1))
@@ -162,6 +171,13 @@ class PageObject < DslElementWithLocator
     a
   end
 
+  def action_alias(label, next_page, &block)
+    a = Alias.new(label, next_page)
+    a.instance_eval(&block)
+    @aliases << a
+    a
+  end
+
   def table(label, &block)
     t = Table.new(label)
     t.instance_eval(&block)
@@ -207,6 +223,16 @@ class PageObject < DslElementWithLocator
       action_output << "\tfire event is not a Proc\n" if not a.fire_block_value.is_a?(Proc)
       action_output.unshift "action(#{a.label_value.inspect}):\n" if not action_output.empty?
       output += action_output
+    }
+    @aliases.each{|a|
+      alias_output = []
+      alias_output << "\talias #{a.label_value.inspect} already defined\n" if labeled(@aliases).count(a.label_value) > 1
+      alias_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
+      alias_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
+      alias_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not labeled(@actions).include? a.action_value
+      alias_output.unshift "alias(#{a.label_value.inspect}):\n" if not alias_output.empty?
+      output += alias_output
     }
     @tables.each{|t|
       table_output = []
@@ -280,7 +306,8 @@ private
 
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
-    @@browser.instance_exec args, &a.fire_block_value
+    block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
+    @@browser.instance_exec args, &block
     self.class.map_current_page a.next_page_value
     @@current_page
   end
@@ -349,6 +376,10 @@ private
     labeled(@actions).include?(label.to_sym)
   end
 
+  def has_alias?(label)
+    labeled(@aliases).include?(label.to_sym)
+  end
+
   def eset_for(label)
     @esets[labeled(@esets).index(label.to_sym)]
   end
@@ -367,5 +398,9 @@ private
 
   def action_for(label)
     @actions[labeled(@actions).index(label.to_sym)]
+  end
+
+  def alias_for(label)
+    @aliases[labeled(@aliases).index(label.to_sym)]
   end
 end

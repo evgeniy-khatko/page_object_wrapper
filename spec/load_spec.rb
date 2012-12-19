@@ -30,6 +30,11 @@ action(""):
 	label "" not a Symbol
 	next_page nil not a Symbol
 	next_page nil unknown page_object
+alias(""):
+	label "" not a Symbol
+	next_page nil not a Symbol
+	next_page nil unknown page_object
+	action "unknown action" not known Action
 table(""):
 	label "" not a Symbol
 	locator nil not a meaningful Hash

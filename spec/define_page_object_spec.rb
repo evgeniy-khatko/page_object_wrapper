@@ -39,6 +39,9 @@ describe "define_page_object" do
     specify { subject.actions.collect(&:label_value).should include(:press_cool_button)}
     it { should respond_to(:fire_press_cool_button) }
 
+    specify { subject.aliases.collect(&:label_value).should include(:fill_textarea_alias)}
+    it { should respond_to(:fire_fill_textarea_alias) }
+
     specify { subject.tables.collect(&:label_value).should include(:table_without_header)}
     it { should respond_to(:select_from_table_without_header) }
     it { should respond_to(:select_from_table_with_header) }
@@ -101,12 +104,30 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
-    describe "action next_page" do
+    describe "action attributes" do
       it { should respond_to(:next_page_value) }
       it { should respond_to(:fire_block_value) }
 
       its(:next_page_value){ should eq(:test_page_with_table) }
       its(:fire_block_value) { should be_a Proc }
+    end
+  end
+
+  context "action alias" do
+    subject { page_object.aliases[page_object.aliases.collect(&:label_value).index(:fill_textarea_alias)] }
+
+    it { should be_a(Alias) }
+
+    describe "alias label" do
+      it_should_behave_like "a label"
+    end
+
+    describe "alias attributes" do
+      it { should respond_to(:next_page_value) }
+      it { should respond_to(:action_value) }
+
+      its(:next_page_value){ should eq :some_test_page }
+      its(:action_value) { should eq :fill_textarea }
     end
   end
 

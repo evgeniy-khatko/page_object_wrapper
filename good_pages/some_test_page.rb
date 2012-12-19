@@ -38,6 +38,8 @@ PageObjectWrapper.define_page(:some_test_page) do
     textarea(:id => 'f2').set data
   end
 
+  action_alias(:fill_textarea_alias, :some_test_page){ action :fill_textarea }
+
   table(:table_without_header) do
     locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
   end
