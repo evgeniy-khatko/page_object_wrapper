@@ -34,6 +34,7 @@ Or install it yourself as:
 - a label identifies the object
 
 Here in the structure of PageObjectWrapper:
+![PageObjectWrapper scheme](https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png)
 
 ### Examples
 
@@ -169,38 +170,38 @@ its syntax is close to SQL 'select column1 from page\_object.some\_table where c
 page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )
 correct arguments are: 
 - :column1 is a column value from which you want to receive
-- :column2 is a column which is used to get specific row
+- :column2 is a column which is used to get specific row  
 
-      context "where == nil" do
-        it "returns last row value from provided column" do
-          tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
-          tp.select_from_table_without_header(:column_1).text.should eq '449,964'
-          tp.select_from_table_without_header(:column_2).text.should eq '410,928'
+    context "where == nil" do
+      it "returns last row value from provided column" do
+        tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
+        tp.select_from_table_without_header(:column_1).text.should eq '449,964'
+        tp.select_from_table_without_header(:column_2).text.should eq '410,928'
+      end
+    end
+
+    context "where not nil" do
+      context "found by String" do
+        it "returns found cells" do
+          tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
+          tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
+        end
+        it "returns nil" do
+          tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
+          tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
         end
       end
-
-      context "where not nil" do
-        context "found by String" do
-          it "returns found cells" do
-            tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
-            tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
-          end
-          it "returns nil" do
-            tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
-            tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
-          end
+      context "found by Regexp" do
+        it "returns found cells" do
+          tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
+          tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
         end
-        context "found by Regexp" do
-          it "returns found cells" do
-            tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
-            tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
-          end
-          it "returns nil" do
-            tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
-            tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
-          end
+        it "returns nil" do
+          tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
+          tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
         end
       end
+    end
 
 #### each\_xxx
 TODO
