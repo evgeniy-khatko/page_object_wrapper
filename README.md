@@ -34,7 +34,7 @@ Or install it yourself as:
 - a label identifies the object
 
 Here in the structure of PageObjectWrapper:
-![PageObjectWrapper scheme](./img/scheme.png)
+![PageObjectWrapper scheme](https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png)
 
 ### Examples
 
@@ -124,12 +124,12 @@ Defined elements can be accessed with their labels.
 - element from an element\_set is corresponds to real Watir::Element
 - elemets\_set corresponds to an Array of Watir::Element  
 
-*preconditions*
+*preconditions*  
 tp is a :some\_test\_page object opened in the browser
 
       tp.tf # => Watir::TextField
       tp.rb # => Watir::Radio
-      tp.test\_elements # => Array of Watir elements
+      tp.test_elements # => Array of Watir elements
 
 
 
