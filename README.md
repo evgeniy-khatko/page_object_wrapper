@@ -117,6 +117,7 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
 - it's possible to define several page objects in one file
 - .open\_page method takes page label, directs browser to that page and returns corresponding page\_object
 - PageObjectWrapper.current\_page points to the opened page\_object
+- it's possible to set page\_object locator in 2 different ways: specifying full url (like in example) or specifying PageObjectWrapper.domain and page\_object local path (like in specs)
 
 #### feed\_xxx
 *preconditions*  
