@@ -127,7 +127,7 @@ Defined elements can be accessed with their labels.
 - elemets\_set corresponds to an Array of Watir::Element  
 
 *preconditions*  
-tp is a :some\_test\_page object opened in the browser
+**tp** is a :some\_test\_page object opened in the browser
 
       tp.tf # => Watir::TextField
       tp.rb # => Watir::Radio
@@ -137,7 +137,7 @@ tp is a :some\_test\_page object opened in the browser
 
 #### feed\_xxx
 *preconditions*  
-tp is a :some\_test\_page object opened in the browser
+**tp** is a :some\_test\_page object opened in the browser
 
     context "argument = :fresh_food" do
       it "populates all xxx elements with :fresh_food" do
@@ -163,7 +163,7 @@ tp is a :some\_test\_page object opened in the browser
 
 #### fire\_xxx
 *preconditions*  
-tp is a :some\_test\_page object opened in the browser
+**tp** is a :some\_test\_page object opened in the browser
 
     it "executes fire_block in Watir::Browser context" do
       tp = PageObjectWrapper.open_page(:some_test_page)
@@ -182,7 +182,7 @@ tp is a :some\_test\_page object opened in the browser
 
 #### select\_from\_xxx
 *preconditions*  
-tp is a :some\_test\_page object opened in the browser  
+**tp** is a :some\_test\_page object opened in the browser  
 its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
       page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )    
 correct arguments are:  
