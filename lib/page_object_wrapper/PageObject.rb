@@ -297,7 +297,7 @@ private
           if watir_element.respond_to?(:set)
             watir_element.when_present.set food
           else
-            raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, eset, e)
+            raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, e) + ' check element type'
           end
         end
     }

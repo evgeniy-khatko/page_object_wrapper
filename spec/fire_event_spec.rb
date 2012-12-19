@@ -6,7 +6,10 @@ describe "page_object.fire_xxx" do
     it "raises PageObjectWrapper::BrowserNotFound" do
       begin
         PageObjectWrapper.browser.quit if not PageObjectWrapper.browser.nil?
-        PageObjectWrapper.load('./good_pages')
+        begin
+          PageObjectWrapper.load('./good_pages')
+        rescue
+        end
       rescue
       end
       tp = PageObjectWrapper.receive_page(:some_test_page)
@@ -17,7 +20,10 @@ describe "page_object.fire_xxx" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
+      begin
         PageObjectWrapper.load('./good_pages')
+      rescue
+      end
     }
     after(:all){ PageObjectWrapper.browser.close }
 

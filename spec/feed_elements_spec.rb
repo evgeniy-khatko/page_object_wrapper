@@ -46,8 +46,8 @@ describe "page_object.feed_xxx" do
         tp.feed_test_elements(:fresh_food)
         @b.text_field(:id=>'f1').value.should eq 'some fresh food'
         @b.textarea(:id=>'f2').value.should eq 'default fresh food'
-        @b.select(:id=>'f10').value.should eq "one\n"
-        @b.select(:id=>'f11').value.should eq "one\n"
+        @b.select(:id=>'f10').value.should eq "one"
+        @b.select(:id=>'f11').value.should eq "one"
         @b.checkbox(:id=>'f5').should be_set
         @b.radio(:id=>'f3').should be_set
       end
@@ -59,8 +59,8 @@ describe "page_object.feed_xxx" do
         tp.feed_test_elements
         @b.text_field(:id=>'f1').value.should eq 'some fresh food'
         @b.textarea(:id=>'f2').value.should eq 'default fresh food'
-        @b.select(:id=>'f10').value.should eq "one\n"
-        @b.select(:id=>'f11').value.should eq "one\n"
+        @b.select(:id=>'f10').value.should eq "one"
+        @b.select(:id=>'f11').value.should eq "one"
         @b.checkbox(:id=>'f5').should be_set
         @b.radio(:id=>'f3').should be_set
       end
@@ -72,8 +72,8 @@ describe "page_object.feed_xxx" do
         tp.feed_test_elements(:missing_food)
         @b.text_field(:id=>'f1').value.should eq 'some missing food'
         @b.textarea(:id=>'f2').value.should eq 'default missing food'
-        @b.select(:id=>'f10').value.should eq "three\n"
-        @b.select(:id=>'f11').value.should eq "two (default)\n"
+        @b.select(:id=>'f10').value.should eq "three"
+        @b.select(:id=>'f11').value.should eq "two (default)"
         @b.checkbox(:id=>'f5').should be_set
         @b.radio(:id=>'f3').should be_set
       end
