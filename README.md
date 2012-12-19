@@ -34,7 +34,7 @@ Or install it yourself as:
 - a label identifies the object
 
 Here in the structure of PageObjectWrapper:
-![PageObjectWrapper scheme](blob/master/img/scheme.png)
+![PageObjectWrapper scheme](./img/scheme.png)
 
 ### Examples
 
