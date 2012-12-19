@@ -27,9 +27,9 @@ Or install it yourself as:
 2. Use defined page object inside your tests with usefull page\_object #methods
 
 ### Basic principles of a PageObjectWrapper
-- there are following objects: page_object elements_set with elements, table, action, pagination
-- a page_object contains elements_sets, tables, actions, paginations
-- an elements_set contains elements
+- there are following objects: page\_object, elements\_set with elements, table, action, pagination  
+- a page_object contains elements\_sets, tables, actions, paginations
+- an elements\_set contains elements
 - every object has a :label
 - a label identifies the object
 
