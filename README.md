@@ -102,17 +102,17 @@ uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_p
 *preconditions*  
 There is a directory, where we've defined a page\_object inside a \*\_page.rb file
 
-1. specify browser to be used by PageObjectWrapper
-    @b = Watir::Browser.new
-    PageObjectWrapper.use_browser @b
-2. load defined pages
-    PageObjectWrapper.load("path/to/pages/directory")
-3. open page in browser
-    test_page = PageObjectWrapper.open_page(:some_test_page)
+1. specify browser to be used by PageObjectWrapper  
+     @b = Watir::Browser.new  
+     PageObjectWrapper.use_browser @b  
+2. load defined pages  
+     PageObjectWrapper.load("path/to/pages/directory")  
+3. open page in browser  
+     test_page = PageObjectWrapper.open_page(:some_test_page)  
 
 *comments*
 - it's possible to use any Watir::Browser with any profile
-- it's possible to use any Webdriver, which behaves like Watir::Browser (meaning that Webdriver uses similar methods for locating elements and working with then)    
+- it's possible to use any Webdriver, which behaves like Watir::Browser (meaning that Webdriver uses similar methods for locating elements and working with them)    
 - .load method validates all pages, defined in specified directory inside any \*\_page.rb file
 - it's possible to define several page objects in one file
 - .open\_page method takes page label, directs browser to that page and returns corresponding page\_object
