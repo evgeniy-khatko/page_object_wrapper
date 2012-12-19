@@ -34,7 +34,7 @@ Or install it yourself as:
 - a label identifies the object
 
 Here in the structure of PageObjectWrapper:
-![PageObjectWrapper scheme](https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png)
+[<img src="https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png">](https://github.com/evgeniy-khatko/page_object_wrapper/blob/master/img/scheme.png)
 
 ### Examples
 
@@ -94,9 +94,9 @@ Here in the structure of PageObjectWrapper:
         end
       end
 
-here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
-uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages
-uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action
+here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
+uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
+uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
 
 #### openning the page
 *preconditions*  
@@ -168,9 +168,9 @@ tp is a :some\_test\_page object opened in the browser
 tp is a :some\_test\_page object opened in the browser
 its syntax is close to SQL 'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'
 page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )
-correct arguments are: 
-- :column1 is a column value from which you want to receive
-- :column2 is a column which is used to get specific row  
+correct arguments are:  
+:column1 is a column value from which you want to receive  
+:column2 is a column which is used to get specific row   
 
     context "where == nil" do
       it "returns last row value from provided column" do
