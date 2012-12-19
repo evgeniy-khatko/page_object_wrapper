@@ -214,7 +214,6 @@ TODO
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
-page\_object\_wrapper
-===================
+##page\_object\_wrapper
 
 Wraps watir-webdriver with convenient testing interface, based on PageObjects automation testing pattern. Simplifies resulting automated test understanding.
