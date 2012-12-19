@@ -58,6 +58,7 @@ module PageObjectWrapper
   end
 
   def self.open_page(label)
+    PageObject.open_page label
     PageObject.map_current_page label
   end
 end

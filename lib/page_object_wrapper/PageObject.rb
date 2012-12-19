@@ -113,7 +113,7 @@ class PageObject < DslElementWithLocator
     end
   end
 
-  def self.map_current_page label
+  def self.open_page label
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
@@ -121,6 +121,12 @@ class PageObject < DslElementWithLocator
     url += @@domain if page_object.locator_value[0]=='/'
     url += page_object.locator_value
     @@browser.goto url
+  end
+
+  def self.map_current_page label
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
+    page_object = PageObject.find_page_object(label)
     watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
     raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url}" if not watir_uniq_element.present?
     @@current_page = page_object
@@ -238,7 +244,8 @@ private
   end
 
   def feed_elements(elements, food_type=nil)
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? 
+    raise PageObjectWrapper::BrowserNotFound if not @@browser.exist? 
     food_type ||= :fresh_food
     raise PageObjectWrapper::UnknownFoodType, food_type.inspect if not FOOD_TYPES.include?(food_type)
     elements.each{|e|
@@ -274,7 +281,8 @@ private
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     @@browser.instance_exec args, &a.fire_block_value
-    self.class.find_page_object(a.next_page_value)
+    self.class.map_current_page a.next_page_value
+    @@current_page
   end
 
   def select_from_table(table, header, where=nil)

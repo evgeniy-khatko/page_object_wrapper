@@ -22,6 +22,8 @@ describe "PageObjectWrapper.open_page" do
 
   context "browser is closed" do
     it "raises PageObjectWrapper::BrowserNotFound" do
+      define_page_object
+      PageObject.browser = nil
       expect{ PageObjectWrapper.open_page(:google_page) }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
   end

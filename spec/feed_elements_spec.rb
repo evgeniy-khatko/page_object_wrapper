@@ -5,6 +5,7 @@ describe "page_object.feed_xxx" do
   context "browser is closed" do
     before(:all){
       begin
+        PageObjectWrapper.browser.quit if not PageObjectWrapper.browser.nil?
         PageObjectWrapper.load('./good_pages')
       rescue
       end
@@ -12,7 +13,7 @@ describe "page_object.feed_xxx" do
 
     it "raises PageObjectWrapper::BrowserNotFound" do
       tp = PageObjectWrapper.receive_page(:some_test_page)
-      expect{ tp.feed_test_elements}.to raise_error(PageObjectWrapper::BrowserNotFound)
+      expect{ tp.feed_test_elements }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
   end
 

@@ -5,6 +5,7 @@ describe "page_object.fire_xxx" do
   context "browser is closed" do
     it "raises PageObjectWrapper::BrowserNotFound" do
       begin
+        PageObjectWrapper.browser.quit if not PageObjectWrapper.browser.nil?
         PageObjectWrapper.load('./good_pages')
       rescue
       end

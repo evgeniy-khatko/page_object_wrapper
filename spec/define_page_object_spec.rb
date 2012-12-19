@@ -134,7 +134,7 @@ describe "define_page_object" do
         subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
         let(:default_header){
           h = []
-          100.times {|i| h << 'column_'+i.to_s}
+          100.times {|i| h << ('column_'+i.to_s).to_sym}
           h
         }
         its(:header_value) { should eq(default_header)}

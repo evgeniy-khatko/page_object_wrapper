@@ -8,6 +8,7 @@ describe "page_object.select_from_xxx" do
         PageObjectWrapper.load('./good_pages')
       rescue
       end
+      PageObject.browser = nil
       tp = PageObjectWrapper.receive_page(:some_test_page)
       expect{ tp.select_from_table_without_header(:column_1, {:column_2 => ''}) }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
