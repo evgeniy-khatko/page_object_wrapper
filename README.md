@@ -119,6 +119,20 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
 - PageObjectWrapper.current\_page points to the opened page\_object
 - it's possible to set page\_object locator in 2 different ways: specifying full url (like in example) or specifying PageObjectWrapper.domain and page\_object local path (like in specs)
 
+#### page\_object.xxx
+Defined elements can be accessed with their labels.
+- element from an element\_set is corresponds to real Watir::Element
+- elemets\_set corresponds to an Array of Watir::Element  
+
+*preconditions*
+tp is a :some\_test\_page object opened in the browser
+
+      tp.tf # => Watir::TextField
+      tp.rb # => Watir::Radio
+      tp.test\_elements # => Array of Watir elements
+
+
+
 #### feed\_xxx
 *preconditions*  
 tp is a :some\_test\_page object opened in the browser
