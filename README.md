@@ -82,6 +82,8 @@ where required attributes are marked with (*)
           textarea(:id => 'f2').set data
         end
 
+        action_alias(:fill_textarea_alias, :some_test_page){ action :fill_textarea }
+
         table(:table_without_header) do
           locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
         end
@@ -139,46 +141,49 @@ Defined elements can be accessed with their labels.
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
-    context "argument = :fresh_food" do
-      it "populates all xxx elements with :fresh_food" do
+    context "argument = :fresh_food":
+      it "populates all xxx elements with :fresh_food":
         tp = PageObjectWrapper.current_page
         tp.feed_test_elements(:fresh_food)
-      end
-    end
 
-    context "argument = nil" do
-      it "populates all xxx elements with :fresh_food" do
+    context "argument = nil":
+      it "populates all xxx elements with :fresh_food":
         tp = PageObjectWrapper.current_page
         tp.feed_test_elements
-      end
-    end
 
-    context "argument = :missing_food" do
-      it "populates all xxx elements with :missing_food" do
+    context "argument = :missing_food":
+      it "populates all xxx elements with :missing_food":
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.feed_test_elements(:missing_food)
-      end
-    end
+
+    context "xxx is alias":
+      it "executes corresponding action":
+        tp = PageObjectWrapper.open_page(:some_test_page)
+        tp.fire_fill_textarea_alias
+        @b.textarea(:id => 'f2').value.should eq('Default data')
 
 
 #### fire\_xxx
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
-    it "executes fire_block in Watir::Browser context" do
+    it "executes fire_block in Watir::Browser context":
       tp = PageObjectWrapper.open_page(:some_test_page)
       tp.fire_fill_textarea
-    end
 
-    it "can be invoked with parameters" do
+    it "can be invoked with parameters":
       tp = PageObjectWrapper.current_page
       tp.fire_fill_textarea('User defined data')
-    end
 
-    it "returns next_page" do
+    it "returns next_page":
       tp = PageObjectWrapper.current_page
       np = tp.fire_press_cool_button
-    end
+
+    context "xxx is alias":
+      it "executes corresponding action":
+        tp = PageObjectWrapper.open_page(:some_test_page)
+        tp.fire_fill_textarea_alias
+        @b.textarea(:id => 'f2').value.should eq('Default data')
 
 #### select\_from\_xxx
 *preconditions*  
@@ -189,36 +194,27 @@ correct arguments are:
 :column1 is a column value from which you want to receive   
 :column2 is a column which is used to get specific row   
 
-    context "where == nil" do
-      it "returns last row value from provided column" do
+    context "where == nil":
+      it "returns last row value from provided column":
         tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
         tp.select_from_table_without_header(:column_1).text.should eq '449,964'
         tp.select_from_table_without_header(:column_2).text.should eq '410,928'
-      end
-    end
 
-    context "where not nil" do
-      context "found by String" do
-        it "returns found cells" do
+    context "where not nil":
+      context "found by String":
+        it "returns found cells":
           tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
           tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
-        end
-        it "returns nil" do
+        it "returns nil":
           tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
           tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
-        end
-      end
-      context "found by Regexp" do
-        it "returns found cells" do
+      context "found by Regexp":
+        it "returns found cells":
           tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
           tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
-        end
-        it "returns nil" do
+        it "returns nil":
           tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
           tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
-        end
-      end
-    end
 
 #### each\_xxx
 TODO
