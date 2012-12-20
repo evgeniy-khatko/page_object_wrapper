@@ -4,11 +4,6 @@ require 'shared_examples'
 describe "page_object.select_from_xxx" do
   context "browser is closed" do
     it "raises PageObjectWrapper::BrowserNotFound" do
-      begin
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
-      PageObject.browser = nil
       tp = PageObjectWrapper.receive_page(:some_test_page)
       expect{ tp.select_from_table_without_header(:column_1, {:column_2 => ''}) }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
@@ -17,12 +12,8 @@ describe "page_object.select_from_xxx" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
-      begin
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
     }
-    after(:all){ PageObjectWrapper.browser.close }
+    after(:all){ PageObjectWrapper.browser.quit }
     let!(:tp){ PageObjectWrapper.open_page(:some_test_page)}
 
     context "wrong arguments" do

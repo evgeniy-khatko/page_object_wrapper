@@ -3,10 +3,6 @@ require 'shared_examples'
 
 describe "define_page_object" do
   let!(:page_object){
-    begin
-      PageObjectWrapper.load('./good_pages')
-    rescue
-    end
     PageObjectWrapper.receive_page(:some_test_page)
   }
 

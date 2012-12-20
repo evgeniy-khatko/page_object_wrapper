@@ -3,14 +3,6 @@ require 'shared_examples'
 
 describe "page_object.feed_xxx" do
   context "browser is closed" do
-    before(:all){
-      begin
-        PageObjectWrapper.browser.quit if not PageObjectWrapper.browser.nil?
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
-    }
-
     it "raises PageObjectWrapper::BrowserNotFound" do
       tp = PageObjectWrapper.receive_page(:some_test_page)
       expect{ tp.feed_test_elements }.to raise_error(PageObjectWrapper::BrowserNotFound)
@@ -21,12 +13,8 @@ describe "page_object.feed_xxx" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
-      begin
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
     }
-    after(:all){PageObjectWrapper.browser.close}
+    after(:all){ PageObjectWrapper.browser.quit }
 
     it "returns current page object" do
       tp = PageObjectWrapper.open_page(:some_test_page)

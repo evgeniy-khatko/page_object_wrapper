@@ -7,12 +7,8 @@ describe "page_object.xxx" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
-      begin
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
     }
-    after(:all){ PageObjectWrapper.browser.close }
+    after(:all){ PageObjectWrapper.browser.quit }
 
     subject{ PageObjectWrapper.open_page(:some_test_page) }
 

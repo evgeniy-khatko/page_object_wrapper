@@ -1,2 +1,8 @@
 require "page_object_wrapper"
-Selenium::WebDriver::Firefox.path='/opt/firefox/firefox'
+
+RSpec.configure do |config|
+  config.before(:suite){
+    Selenium::WebDriver::Firefox.path='/opt/firefox/firefox'
+    PageObjectWrapper.load('./good_pages')
+  }
+end

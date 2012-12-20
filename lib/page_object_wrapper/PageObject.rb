@@ -16,6 +16,7 @@ class PageObject < DslElementWithLocator
   @@pages = []
   @@current_page = nil
 
+  UNIQ_ELEMENT_WAIT_PERIOD = 10
   FOOD_TYPES = [:missing_food, :fresh_food]
   FEED_ALL = Regexp.new(/^feed_all$/)
   FEED_SET = Regexp.new(/^feed_([\w_]+)$/)
@@ -26,7 +27,7 @@ class PageObject < DslElementWithLocator
     
   def initialize(label)
     super label
-    @uniq_element_type = 'element'
+    @uniq_element_type = nil
     @uniq_element_hash = {}
     @esets = []
     @elements = []
@@ -136,8 +137,14 @@ class PageObject < DslElementWithLocator
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
-    watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
-    raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url}" if not watir_uniq_element.present?
+    if not page_object.uniq_element_type.nil?
+      watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
+      begin
+        watir_uniq_element.wait_until_present UNIQ_ELEMENT_WAIT_PERIOD
+      rescue Watir::Wait::TimeoutError => e
+        raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url} (#{e.message})" if not watir_uniq_element.present?
+      end
+    end
     @@current_page = page_object
   end
 
@@ -270,8 +277,7 @@ private
   end
 
   def feed_elements(elements, food_type=nil)
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? 
-    raise PageObjectWrapper::BrowserNotFound if not @@browser.exist? 
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     food_type ||= :fresh_food
     raise PageObjectWrapper::UnknownFoodType, food_type.inspect if not FOOD_TYPES.include?(food_type)
     elements.each{|e|
@@ -305,7 +311,7 @@ private
   end
 
   def fire_action(a, *args)
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
     @@browser.instance_exec args, &block
     self.class.map_current_page a.next_page_value
@@ -313,7 +319,7 @@ private
   end
 
   def select_from_table(table, header, where=nil)
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     t = @@browser.table(table.locator_value)
     raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
     raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
@@ -344,11 +350,11 @@ private
   end
 
   def each_pagination
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
   end
 
   def open_padination n
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
   end
 
 

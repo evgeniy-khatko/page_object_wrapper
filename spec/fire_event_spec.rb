@@ -4,14 +4,6 @@ require 'shared_examples'
 describe "page_object.fire_xxx" do
   context "browser is closed" do
     it "raises PageObjectWrapper::BrowserNotFound" do
-      begin
-        PageObjectWrapper.browser.quit if not PageObjectWrapper.browser.nil?
-        begin
-          PageObjectWrapper.load('./good_pages')
-        rescue
-        end
-      rescue
-      end
       tp = PageObjectWrapper.receive_page(:some_test_page)
       expect{ tp.fire_press_cool_button }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
@@ -20,12 +12,8 @@ describe "page_object.fire_xxx" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
-      begin
-        PageObjectWrapper.load('./good_pages')
-      rescue
-      end
     }
-    after(:all){ PageObjectWrapper.browser.close }
+    after(:all){ PageObjectWrapper.browser.quit }
 
     it "executes fire_block in Watir::Browser context" do
       tp = PageObjectWrapper.open_page(:some_test_page)
