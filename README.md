@@ -102,7 +102,7 @@ here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~j
 - uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
 - uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
 - all defined elements have labels
-- action and action_alias defined with labels and next_pages
+- action and action\_alias defined with labels and next\_pages
 
 #### openning the page
 *preconditions*  
@@ -174,12 +174,6 @@ current\_page
       it "populates all xxx elements with :missing_food":
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.feed_test_elements(:missing_food)
-
-    context "xxx is alias":
-      it "executes corresponding action":
-        tp = PageObjectWrapper.open_page(:some_test_page)
-        tp.fire_fill_textarea_alias
-        @b.textarea(:id => 'f2').value.should eq('Default data')
 
 #### xxx\_fresh\_food, xxx\_missing\_food  
 *parameters*  
