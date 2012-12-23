@@ -124,11 +124,11 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
 - .open\_page method takes page label, directs browser to that page and returns corresponding page\_object
 - PageObjectWrapper.current\_page points to the opened page\_object
 - it's possible to set page\_object locator in 2 different ways: specifying full url (like in example) or specifying PageObjectWrapper.domain and page\_object local path (like in specs)
-- it's possible to set dynamic urls for pages, e.g.
-      PageObjectWrapper.define_page(:google) do
-        locator 'www.google.com/:some_param'
-      end
-      PageObjectWrapper.open_page(:google, :some_param => 'advanced_search') # => 'http://google.com/advanced_search'
+- it's possible to set dynamic urls for pages, e.g.  
+        PageObjectWrapper.define_page(:google) do
+          locator 'www.google.com/:some_param'
+        end
+        PageObjectWrapper.open_page(:google, :some_param => 'advanced_search') # => 'http://google.com/advanced_search'
 
 #### page\_object.xxx 
 *parameters*  
