@@ -17,6 +17,7 @@ describe "page_object.select_from_xxx" do
     let!(:tp){ PageObjectWrapper.open_page(:some_test_page)}
 
     context "wrong arguments" do
+
       it "raises ArgumentError if first_arg not a Symbol" do
         expect{ tp.select_from_table_without_header(nil,{}) }.to raise_error ArgumentError, "nil not a Symbol"
       end
@@ -38,35 +39,73 @@ describe "page_object.select_from_xxx" do
       it "raises Watir::Exception::UnknownObjectException if requested for non existing column" do
         expect{ tp.select_from_table_without_header(:column_3).text }.to raise_error(Watir::Exception::UnknownObjectException)
       end
+      
+      context "next_page specified" do
+        it "raises ArgumentError if next_page not symbol" do
+          expect{ tp.select_from_table_without_header(:column_1, nil, 'a string') }.to raise_error ArgumentError, '"a string" not a Symbol'
+          expect{ tp.select_from_table_without_header(:column_1, {:column_1 => 'Ireland'}, 'a string') }.to raise_error ArgumentError, '"a string" not a Symbol'
+        end
+        it "raises ArgumentError if next_page not loaded" do
+          expect{ tp.select_from_table_without_header(:column_1, nil, :nonexistent_page) }.to raise_error ArgumentError, ':nonexistent_page not known Page'
+          expect{ tp.select_from_table_without_header(:column_1, {:column_1 => 'Ireland'}, :nonexistent_page) }.to raise_error ArgumentError, ':nonexistent_page not known Page'
+        end
+      end
     end
 
     context "where == nil" do
-      it "returns last row value from provided column" do
-        tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
-        tp.select_from_table_without_header(:column_1).text.should eq '449,964'
-        tp.select_from_table_without_header(:column_2).text.should eq '410,928'
+      context "next_page not specified" do
+        it "returns last row value from provided column" do
+          tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
+          tp.select_from_table_without_header(:column_1).text.should eq '449,964'
+          tp.select_from_table_without_header(:column_2).text.should eq '410,928'
+        end
+      end
+      context "next_page specified" do
+        it "returns last row value from provided column" do
+          tp.select_from_table_without_header(:column_0, nil, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+        end
       end
     end
 
     context "where not nil" do
-      context "found by String" do
-        it "returns found cells" do
-          tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
-          tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
+      context "next_page not specified" do
+        context "found by String" do
+          it "returns found cells" do
+            tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
+            tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
+          end
+          it "returns nil" do
+            tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
+            tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
+          end
         end
-        it "returns nil" do
-          tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
-          tp.select_from_table_with_header(:country, :total_area => '123').should eq nil
+        context "found by Regexp" do
+          it "returns found cells" do
+            tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
+            tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
+          end
+          it "returns nil" do
+            tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
+            tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
+          end
         end
       end
-      context "found by Regexp" do
-        it "returns found cells" do
-          tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
-          tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
+      context "next_page specified" do
+        context "found by String" do
+          it "returns found cells" do
+            tp.select_from_table_without_header(:column_0, {:column_1 => '103,000'}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+          end
+          it "returns nil" do
+            tp.select_from_table_without_header(:column_0, {:column_1 => '123'}, :some_test_page).should eq nil
+          end
         end
-        it "returns nil" do
-          tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
-          tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
+        context "found by Regexp" do
+          it "returns found cells" do
+            tp.select_from_table_without_header(:column_0, {:column_1 => /103/}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+          end
+          it "returns nil" do
+            tp.select_from_table_without_header(:column_0, {:column_1 => /123/}, :some_test_page).should eq nil
+          end
         end
       end
     end

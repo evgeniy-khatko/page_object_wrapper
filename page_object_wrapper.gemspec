@@ -13,7 +13,6 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/evgeniy-khatko/page_object_wrapper"
 	gem.add_dependency "watir-webdriver"
 	gem.add_development_dependency "rspec", ">= 2.0.0"
- 
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

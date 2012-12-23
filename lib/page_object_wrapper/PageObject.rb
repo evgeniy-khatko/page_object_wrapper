@@ -123,13 +123,21 @@ class PageObject < DslElementWithLocator
     end
   end
 
-  def self.open_page label
+  def self.open_page label, optional_hash=nil
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     url = ''
     url += @@domain if page_object.locator_value[0]=='/'
     url += page_object.locator_value
+    if not (optional_hash.nil? or optional_hash.empty?)
+      optional_hash.each{|k,v|
+        raise ArgumentError, "#{k.inspect} not Symbol" if not k.is_a? Symbol
+        raise ArgumentError, "#{v.inspect} not meaningful String" if not v.is_a? String or v.empty?
+        raise PageObjectWrapper::DynamicUrl, "#{k.inspect} not known parameter" if not url.match(':'+k.to_s)
+        url.gsub!(/:#{k.to_s}/, v)
+      }
+    end
     @@browser.goto url
   end
 
@@ -168,6 +176,14 @@ class PageObject < DslElementWithLocator
     eset = ElementsSet.new(label)
     eset.instance_eval(&block)
     @esets << eset
+    eset.elements.each{|e|
+      PageObject.send :define_method, (e.label_value.to_s+'_fresh_food').to_sym do
+        e.fresh_food_value
+      end
+      PageObject.send :define_method, (e.label_value.to_s+'_missing_food').to_sym do
+        e.missing_food_value
+      end
+    }
     @elements += eset.elements
     eset
   end
@@ -318,13 +334,20 @@ private
     @@current_page
   end
 
-  def select_from_table(table, header, where=nil)
+  def select_from_table(table, header, *args)
+    where = args[0]
+    next_page = args[1]
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     t = @@browser.table(table.locator_value)
     raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
     raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
     search_for_index = table.header_value.index(header)
     found = nil
+
+    if not next_page.nil?
+      raise ArgumentError, "#{next_page.inspect} not a Symbol" if not next_page.is_a? Symbol
+      raise ArgumentError, "#{next_page.inspect} not known Page" if not labeled(@@pages).include?(next_page)
+    end
 
     if not where.nil?
       raise ArgumentError, "#{where.inspect} not a meaningful Hash" if not where.is_a? Hash or where.empty?
@@ -346,7 +369,16 @@ private
     else # where == nil
       found = t.rows.last.cells[search_for_index]
     end
-    found
+
+    if not next_page.nil?
+      if not found.nil?
+        return PageObject.find_page_object(next_page)
+      else
+        return nil
+      end
+    else # next_page == nil
+      return found
+    end
   end
 
   def each_pagination

@@ -99,8 +99,10 @@ where required attributes are marked with (*)
       end
 
 here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
-uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
-uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
+- uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
+- uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
+- all defined elements have labels
+- action and action_alias defined with labels and next_pages
 
 #### openning the page
 *preconditions*  
@@ -122,8 +124,18 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
 - .open\_page method takes page label, directs browser to that page and returns corresponding page\_object
 - PageObjectWrapper.current\_page points to the opened page\_object
 - it's possible to set page\_object locator in 2 different ways: specifying full url (like in example) or specifying PageObjectWrapper.domain and page\_object local path (like in specs)
+- it's possible to set dynamic urls for pages, e.g.
+      PageObjectWrapper.define_page(:google) do
+        locator 'www.google.com/:some_param'
+      end
+      PageObjectWrapper.open_page(:google, :some_param => 'advanced_search') # => 'http://google.com/advanced_search'
 
-#### page\_object.xxx
+#### page\_object.xxx 
+*parameters*  
+no  
+*returns*  
+Watir::XXX element  
+  
 Defined elements can be accessed with their labels.
 - element from an element\_set is corresponds to real Watir::Element
 - elemets\_set corresponds to an Array of Watir::Element  
@@ -137,7 +149,12 @@ Defined elements can be accessed with their labels.
 
 
 
-#### feed\_xxx
+#### feed\_xxx 
+*parameters*  
+:fresh\_food, :missing\_food  
+*returns*  
+current\_page  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
@@ -163,7 +180,12 @@ Defined elements can be accessed with their labels.
         @b.textarea(:id => 'f2').value.should eq('Default data')
 
 
-#### fire\_xxx
+#### fire\_xxx 
+*parameters*  
+optional arguments defined inside action  
+*returns*  
+next\_page from xxx action  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
@@ -185,7 +207,13 @@ Defined elements can be accessed with their labels.
         tp.fire_fill_textarea_alias
         @b.textarea(:id => 'f2').value.should eq('Default data')
 
-#### select\_from\_xxx
+#### select\_from\_xxx  
+*parameters*  
+:column\_1, :column\_2 => search\_value, :optional\_next\_page  
+*returns*  
+Watir::TableCell if next\_page not specified  
+next\_page if it is specified  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser  
 its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
