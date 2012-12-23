@@ -1,3 +1,4 @@
+require 'active_support/inflector'
 require 'Dsl'
 require 'Exceptions'
 include PageObjectWrapper
@@ -423,59 +424,12 @@ private
     ary.collect(&:label_value)
   end
 
-  def has_eset?(label)
-    labeled(@esets).include?(label.to_sym)
-  end
-
-  def has_element?(label)
-    labeled(@elements).include?(label.to_sym)
-  end
-  
-  def has_table?(label)
-    labeled(@tables).include?(label.to_sym)
-  end
-
-  def has_pagination?(label)
-    labeled(@paginations).include?(label.to_sym)
-  end
-
-  def has_action?(label)
-    labeled(@actions).include?(label.to_sym)
-  end
-
-  def has_validator?(label)
-    labeled(@validators).include?(label.to_sym)
-  end
-
-  def has_alias?(label)
-    labeled(@aliases).include?(label.to_sym)
-  end
-
-  def eset_for(label)
-    @esets[labeled(@esets).index(label.to_sym)]
-  end
-
-  def element_for(label)
-    @elements[labeled(@elements).index(label.to_sym)]
-  end
-
-  def table_for(label)
-    @tables[labeled(@tables).index(label.to_sym)]
-  end
-
-  def pagination_for(label)
-    @paginations[labeled(@paginations).index(label.to_sym)]
-  end
-
-  def action_for(label)
-    @actions[labeled(@actions).index(label.to_sym)]
-  end
-
-  def validator_for(label)
-    @validators[labeled(@validators).index(label.to_sym)]
-  end
-
-  def alias_for(label)
-    @aliases[labeled(@aliases).index(label.to_sym)]
-  end
+  [:eset, :element, :table, :pagination, :action, :alias, :validator].each{|el|
+    PageObject.send :define_method, 'has_'+el.to_s+'?' do |label| # has_xxx?(label)
+      labeled(instance_variable_get("@#{el.to_s.pluralize}")).include?(label.to_sym)
+    end
+    PageObject.send :define_method, el.to_s+'_for' do |label| # xxx_for(label)
+      instance_variable_get("@#{el.to_s.pluralize}")[labeled(instance_variable_get("@#{el.to_s.pluralize}")).index(label.to_sym)]
+    end
+  }
 end

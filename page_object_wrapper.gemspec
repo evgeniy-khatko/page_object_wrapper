@@ -12,6 +12,7 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Wraps watir-webdriver with convenient testing interface.}
   gem.homepage      = "https://github.com/evgeniy-khatko/page_object_wrapper"
 	gem.add_dependency "watir-webdriver"
+	gem.add_dependency "activesupport"
 	gem.add_development_dependency "rspec", ">= 2.0.0"
 
   gem.files         = `git ls-files`.split($/)
