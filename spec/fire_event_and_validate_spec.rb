@@ -18,7 +18,7 @@ describe "page_object.fire_xxx" do
     it "executes fire_block in Watir::Browser context" do
       tp = PageObjectWrapper.open_page(:some_test_page)
       tp.fire_fill_textarea
-      @b.textarea(:id => 'f2').value.should eq('Default data')
+      tp.validate_textarea_value('Default data').should be(true)
     end
 
     context "xxx not found among current_page actions" do
@@ -31,14 +31,14 @@ describe "page_object.fire_xxx" do
     it "can be invoked with parameters" do
       tp = PageObjectWrapper.current_page
       tp.fire_fill_textarea('User defined data')
-      @b.textarea(:id => 'f2').value.should eq('User defined data')
+      tp.validate_textarea_value('User defined data').should be(true)
     end
 
     context "xxx is alias" do
       it "executes corresponding action" do
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
-        @b.textarea(:id => 'f2').value.should eq('Default data')
+        tp.validate_textarea_value('Default data').should be(true)
       end
     end
 

@@ -70,7 +70,6 @@ where required attributes are marked with (*)
 
           checkbox(:cb){ locator :id => 'f5' }
           radio(:rb){ locator :id => 'f3' }
-
         end
 
         action(:press_cool_button, :test_page_with_table) do
@@ -78,7 +77,7 @@ where required attributes are marked with (*)
         end
 
         action(:fill_textarea, :some_test_page) do |fill_with|
-          data = (fill_with.empty?)? 'Default data' : fill_with
+          data = (fill_with.nil?)? 'Default data' : fill_with
           textarea(:id => 'f2').set data
         end
 
@@ -96,6 +95,10 @@ where required attributes are marked with (*)
         pagination(:some_pagination) do
           locator :xpath => ''
         end
+
+        validator(:textarea_value) do |expected|
+          textarea(:id => 'f2').value == expected
+        end
       end
 
 here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
@@ -103,6 +106,7 @@ here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~j
 - uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
 - all defined elements have labels
 - action and action\_alias defined with labels and next\_pages
+- validator defined with label
 
 #### openning the page
 *preconditions*  
@@ -212,7 +216,24 @@ next\_page from xxx action
       it "executes corresponding action":
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
-        @b.textarea(:id => 'f2').value.should eq('Default data')
+
+#### validate\_xxx 
+*parameters*  
+optional arguments defined inside action  
+*returns*  
+anything block inside xxx validator returns
+it's expected that validator returns true | false
+  
+*preconditions*  
+**tp** is a :some\_test\_page object opened in the browser
+
+      tp = PageObjectWrapper.open_page(:some_test_page)
+      tp.fire_fill_textarea
+      tp.validate_textarea_value('Default data').should be(true)
+
+      tp = PageObjectWrapper.current_page
+      tp.fire_fill_textarea('User defined data')
+      tp.validate_textarea_value('User defined data').should be(true)
 
 #### select\_from\_xxx  
 *parameters*  

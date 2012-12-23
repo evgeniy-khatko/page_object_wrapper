@@ -6,12 +6,13 @@ require 'ElementsSet'
 require 'Element'
 require 'Action'
 require 'Alias'
+require 'Validator'
 require 'Table'
 require 'Pagination'
 require 'known_elements'
 
 class PageObject < DslElementWithLocator
-  attr_reader :esets, :elements, :actions, :aliases, :tables, :paginations, :uniq_element_type, :uniq_element_hash
+  attr_reader :esets, :elements, :actions, :aliases, :validators, :tables, :paginations, :uniq_element_type, :uniq_element_hash
   @@browser = nil
   @@pages = []
   @@current_page = nil
@@ -24,6 +25,7 @@ class PageObject < DslElementWithLocator
   SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
   PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
   PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
+  VALIDATE = Regexp.new(/^validate_([\w_]+)$/)
     
   def initialize(label)
     super label
@@ -33,6 +35,7 @@ class PageObject < DslElementWithLocator
     @elements = []
     @actions = []
     @aliases = []
+    @validators = []
     @tables = []
     @paginations = []
   end
@@ -67,6 +70,10 @@ class PageObject < DslElementWithLocator
         # page_object.fire_some_action
         a = alias_for($1)
         fire_action(a, *args)
+      when (VALIDATE.match(method_name) and has_validator?($1))
+        # page_object.validate_something
+        v = validator_for($1)
+        run_validator(v, *args)
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
         table = table_for($1)
@@ -108,6 +115,9 @@ class PageObject < DslElementWithLocator
         true
       when (FIRE_ACTION.match(method_name) and has_alias?($1))
         # page_object.fire_some_action
+        true
+      when (VALIDATE.match(method_name) and has_action?($1))
+        # page_object.validate_xxx
         true
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
@@ -201,6 +211,12 @@ class PageObject < DslElementWithLocator
     a
   end
 
+  def validator(label, &block)
+    v = Validator.new(label, &block)
+    @validators << v
+    v
+  end
+
   def table(label, &block)
     t = Table.new(label)
     t.instance_eval(&block)
@@ -256,6 +272,14 @@ class PageObject < DslElementWithLocator
       alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not labeled(@actions).include? a.action_value
       alias_output.unshift "alias(#{a.label_value.inspect}):\n" if not alias_output.empty?
       output += alias_output
+    }
+    @validators.each{|v|
+      validator_output = []
+      validator_output << "\tvalidator #{v.label_value.inspect} already defined\n" if labeled(@validators).count(v.label_value) > 1
+      validator_output << "\tlabel #{v.label_value.inspect} not a Symbol\n" if not v.label_value.is_a?(Symbol)
+      validator_output << "\tvalidation block is not a Proc\n" if not v.validate_block_value.is_a?(Proc)
+      validator_output.unshift "validator(#{v.label_value.inspect}):\n" if not validator_output.empty?
+      output += validator_output
     }
     @tables.each{|t|
       table_output = []
@@ -329,9 +353,14 @@ private
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
-    @@browser.instance_exec args, &block
+    @@browser.instance_exec *args, &block
     self.class.map_current_page a.next_page_value
     @@current_page
+  end
+
+  def run_validator(v, *args)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+    @@browser.instance_exec *args, &v.validate_block_value
   end
 
   def select_from_table(table, header, *args)
@@ -414,6 +443,10 @@ private
     labeled(@actions).include?(label.to_sym)
   end
 
+  def has_validator?(label)
+    labeled(@validators).include?(label.to_sym)
+  end
+
   def has_alias?(label)
     labeled(@aliases).include?(label.to_sym)
   end
@@ -436,6 +469,10 @@ private
 
   def action_for(label)
     @actions[labeled(@actions).index(label.to_sym)]
+  end
+
+  def validator_for(label)
+    @validators[labeled(@validators).index(label.to_sym)]
   end
 
   def alias_for(label)

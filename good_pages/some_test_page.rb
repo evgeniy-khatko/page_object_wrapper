@@ -33,7 +33,7 @@ PageObjectWrapper.define_page(:some_test_page) do
   end
 
   action(:fill_textarea, :some_test_page) do |fill_with|
-    data = (fill_with.empty?)? 'Default data' : fill_with
+    data = (fill_with.nil?)? 'Default data' : fill_with
     textarea(:id => 'f2').set data
   end
 
@@ -50,5 +50,9 @@ PageObjectWrapper.define_page(:some_test_page) do
 
   pagination(:some_pagination) do
     locator :xpath => ''
+  end
+
+  validator(:textarea_value) do |expected|
+    textarea(:id => 'f2').value == expected
   end
 end
