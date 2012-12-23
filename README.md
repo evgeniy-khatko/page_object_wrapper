@@ -251,6 +251,14 @@ correct arguments are:
           tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
           tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
 
+      context "next_page specified":
+        context "found by String":
+          it "returns found cells":
+            tp.select_from_table_without_header(:column_0, {:column_1 => '103,000'}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+        context "not found by String":
+          it "returns nil":
+            tp.select_from_table_without_header(:column_0, {:column_1 => '123'}, :some_test_page).should eq nil
+
 #### each\_xxx
 TODO
 #### open\_xxx
