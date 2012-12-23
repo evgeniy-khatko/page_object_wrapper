@@ -109,12 +109,15 @@ here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~j
 There is a directory, where we've defined a page\_object inside a \*\_page.rb file
 
 1. specify browser to be used by PageObjectWrapper  
-     @b = Watir::Browser.new  
-     PageObjectWrapper.use_browser @b  
+  
+       @b = Watir::Browser.new  
+       PageObjectWrapper.use_browser @b  
 2. load defined pages  
-     PageObjectWrapper.load("path/to/pages/directory")  
+  
+       PageObjectWrapper.load("path/to/pages/directory")  
 3. open page in browser  
-     test_page = PageObjectWrapper.open_page(:some_test_page)  
+  
+       test_page = PageObjectWrapper.open_page(:some_test_page)  
 
 *comments*
 - it's possible to use any Watir::Browser with any profile
