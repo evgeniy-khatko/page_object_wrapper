@@ -178,6 +178,17 @@ current\_page
         tp.fire_fill_textarea_alias
         @b.textarea(:id => 'f2').value.should eq('Default data')
 
+#### xxx\_fresh\_food, xxx\_missing\_food  
+*parameters*  
+no  
+*returns*  
+fresh or missinf food value from page definition  
+  
+*preconditions*  
+**tp** is a :some\_test\_page object opened in the browser  
+
+    tp.tf_fresh_food # => 'some fresh food' 
+    tp.ta_fresh_food # => 'default fresh food'
 
 #### fire\_xxx 
 *parameters*  
