@@ -344,7 +344,7 @@ private
         end
       }
     else # where == nil
-      found = t.rows.last.cells[search_for_index]
+      found = t.rows[t.rows.length/2].cells[search_for_index] # returning some "middle" row cell value
     end
     found
   end
