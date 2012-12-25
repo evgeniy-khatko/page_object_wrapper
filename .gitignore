@@ -21,3 +21,5 @@ tmp
 .yardoc
 _yardoc
 doc/
+pages/
+test_spec/

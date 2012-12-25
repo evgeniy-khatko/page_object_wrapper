@@ -138,8 +138,8 @@ class PageObject < DslElementWithLocator
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     if not page_object.uniq_element_type.nil?
-      watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
       begin
+        watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
         watir_uniq_element.wait_until_present UNIQ_ELEMENT_WAIT_PERIOD
       rescue Watir::Wait::TimeoutError => e
         raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url} (#{e.message})" if not watir_uniq_element.present?
@@ -313,7 +313,7 @@ private
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
-    @@browser.instance_exec args, &block
+    @@browser.instance_exec *args, &block
     self.class.map_current_page a.next_page_value
     @@current_page
   end

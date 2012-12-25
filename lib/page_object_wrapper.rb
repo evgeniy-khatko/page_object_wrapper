@@ -45,10 +45,6 @@ module PageObjectWrapper
     raise PageObjectWrapper::Load, output.join if not output.empty?
   end
 
-  def self.domain=val
-    @@domain = val
-  end
-
   def self.domain
     @@domain
   end
