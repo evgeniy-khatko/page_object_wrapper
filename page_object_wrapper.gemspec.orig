@@ -14,7 +14,11 @@ Gem::Specification.new do |gem|
 	gem.add_dependency "watir-webdriver"
 	gem.add_dependency "activesupport"
 	gem.add_development_dependency "rspec", ">= 2.0.0"
+<<<<<<< HEAD
 	gem.add_development_dependency "debugger"
+ 
+=======
+>>>>>>> 3c944dcc705aa45b76ecda84a061beb9ee0ed4af
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

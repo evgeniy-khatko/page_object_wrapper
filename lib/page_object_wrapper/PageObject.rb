@@ -1,3 +1,4 @@
+require 'active_support/inflector'
 require 'Dsl'
 require 'Exceptions'
 include PageObjectWrapper
@@ -6,12 +7,13 @@ require 'ElementsSet'
 require 'Element'
 require 'Action'
 require 'Alias'
+require 'Validator'
 require 'Table'
 require 'Pagination'
 require 'known_elements'
 
 class PageObject < DslElementWithLocator
-  attr_reader :esets, :elements, :actions, :aliases, :tables, :paginations, :uniq_element_type, :uniq_element_hash
+  attr_reader :esets, :elements, :actions, :aliases, :validators, :tables, :paginations, :uniq_element_type, :uniq_element_hash
   @@browser = nil
   @@pages = []
   @@current_page = nil
@@ -24,6 +26,7 @@ class PageObject < DslElementWithLocator
   SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
   PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
   PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
+  VALIDATE = Regexp.new(/^validate_([\w_]+)$/)
     
   def initialize(label)
     super label
@@ -33,6 +36,7 @@ class PageObject < DslElementWithLocator
     @elements = []
     @actions = []
     @aliases = []
+    @validators = []
     @tables = []
     @paginations = []
   end
@@ -67,6 +71,10 @@ class PageObject < DslElementWithLocator
         # page_object.fire_some_action
         a = alias_for($1)
         fire_action(a, *args)
+      when (VALIDATE.match(method_name) and has_validator?($1))
+        # page_object.validate_something
+        v = validator_for($1)
+        run_validator(v, *args)
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
         table = table_for($1)
@@ -109,6 +117,9 @@ class PageObject < DslElementWithLocator
       when (FIRE_ACTION.match(method_name) and has_alias?($1))
         # page_object.fire_some_action
         true
+      when (VALIDATE.match(method_name) and has_action?($1))
+        # page_object.validate_xxx
+        true
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
         true
@@ -123,13 +134,21 @@ class PageObject < DslElementWithLocator
     end
   end
 
-  def self.open_page label
+  def self.open_page label, optional_hash=nil
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     url = ''
     url += @@domain if page_object.locator_value[0]=='/'
     url += page_object.locator_value
+    if not (optional_hash.nil? or optional_hash.empty?)
+      optional_hash.each{|k,v|
+        raise ArgumentError, "#{k.inspect} not Symbol" if not k.is_a? Symbol
+        raise ArgumentError, "#{v.inspect} not meaningful String" if not v.is_a? String or v.empty?
+        raise PageObjectWrapper::DynamicUrl, "#{k.inspect} not known parameter" if not url.match(':'+k.to_s)
+        url.gsub!(/:#{k.to_s}/, v)
+      }
+    end
     @@browser.goto url
   end
 
@@ -168,6 +187,14 @@ class PageObject < DslElementWithLocator
     eset = ElementsSet.new(label)
     eset.instance_eval(&block)
     @esets << eset
+    eset.elements.each{|e|
+      PageObject.send :define_method, (e.label_value.to_s+'_fresh_food').to_sym do
+        e.fresh_food_value
+      end
+      PageObject.send :define_method, (e.label_value.to_s+'_missing_food').to_sym do
+        e.missing_food_value
+      end
+    }
     @elements += eset.elements
     eset
   end
@@ -183,6 +210,12 @@ class PageObject < DslElementWithLocator
     a.instance_eval(&block)
     @aliases << a
     a
+  end
+
+  def validator(label, &block)
+    v = Validator.new(label, &block)
+    @validators << v
+    v
   end
 
   def table(label, &block)
@@ -240,6 +273,14 @@ class PageObject < DslElementWithLocator
       alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not labeled(@actions).include? a.action_value
       alias_output.unshift "alias(#{a.label_value.inspect}):\n" if not alias_output.empty?
       output += alias_output
+    }
+    @validators.each{|v|
+      validator_output = []
+      validator_output << "\tvalidator #{v.label_value.inspect} already defined\n" if labeled(@validators).count(v.label_value) > 1
+      validator_output << "\tlabel #{v.label_value.inspect} not a Symbol\n" if not v.label_value.is_a?(Symbol)
+      validator_output << "\tvalidation block is not a Proc\n" if not v.validate_block_value.is_a?(Proc)
+      validator_output.unshift "validator(#{v.label_value.inspect}):\n" if not validator_output.empty?
+      output += validator_output
     }
     @tables.each{|t|
       table_output = []
@@ -318,13 +359,25 @@ private
     @@current_page
   end
 
-  def select_from_table(table, header, where=nil)
+  def run_validator(v, *args)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+    @@browser.instance_exec *args, &v.validate_block_value
+  end
+
+  def select_from_table(table, header, *args)
+    where = args[0]
+    next_page = args[1]
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     t = @@browser.table(table.locator_value)
     raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
     raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
     search_for_index = table.header_value.index(header)
     found = nil
+
+    if not next_page.nil?
+      raise ArgumentError, "#{next_page.inspect} not a Symbol" if not next_page.is_a? Symbol
+      raise ArgumentError, "#{next_page.inspect} not known Page" if not labeled(@@pages).include?(next_page)
+    end
 
     if not where.nil?
       raise ArgumentError, "#{where.inspect} not a meaningful Hash" if not where.is_a? Hash or where.empty?
@@ -346,7 +399,16 @@ private
     else # where == nil
       found = t.rows[t.rows.length/2].cells[search_for_index] # returning some "middle" row cell value
     end
-    found
+
+    if not next_page.nil?
+      if not found.nil?
+        return PageObject.find_page_object(next_page)
+      else
+        return nil
+      end
+    else # next_page == nil
+      return found
+    end
   end
 
   def each_pagination
@@ -362,51 +424,12 @@ private
     ary.collect(&:label_value)
   end
 
-  def has_eset?(label)
-    labeled(@esets).include?(label.to_sym)
-  end
-
-  def has_element?(label)
-    labeled(@elements).include?(label.to_sym)
-  end
-  
-  def has_table?(label)
-    labeled(@tables).include?(label.to_sym)
-  end
-
-  def has_pagination?(label)
-    labeled(@paginations).include?(label.to_sym)
-  end
-
-  def has_action?(label)
-    labeled(@actions).include?(label.to_sym)
-  end
-
-  def has_alias?(label)
-    labeled(@aliases).include?(label.to_sym)
-  end
-
-  def eset_for(label)
-    @esets[labeled(@esets).index(label.to_sym)]
-  end
-
-  def element_for(label)
-    @elements[labeled(@elements).index(label.to_sym)]
-  end
-
-  def table_for(label)
-    @tables[labeled(@tables).index(label.to_sym)]
-  end
-
-  def pagination_for(label)
-    @paginations[labeled(@paginations).index(label.to_sym)]
-  end
-
-  def action_for(label)
-    @actions[labeled(@actions).index(label.to_sym)]
-  end
-
-  def alias_for(label)
-    @aliases[labeled(@aliases).index(label.to_sym)]
-  end
+  [:eset, :element, :table, :pagination, :action, :alias, :validator].each{|el|
+    PageObject.send :define_method, 'has_'+el.to_s+'?' do |label| # has_xxx?(label)
+      labeled(instance_variable_get("@#{el.to_s.pluralize}")).include?(label.to_sym)
+    end
+    PageObject.send :define_method, el.to_s+'_for' do |label| # xxx_for(label)
+      instance_variable_get("@#{el.to_s.pluralize}")[labeled(instance_variable_get("@#{el.to_s.pluralize}")).index(label.to_sym)]
+    end
+  }
 end

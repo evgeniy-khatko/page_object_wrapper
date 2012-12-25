@@ -35,6 +35,8 @@ alias(""):
 	next_page nil not a Symbol
 	next_page nil unknown page_object
 	action "unknown action" not known Action
+validator(""):
+	label "" not a Symbol
 table(""):
 	label "" not a Symbol
 	locator nil not a meaningful Hash

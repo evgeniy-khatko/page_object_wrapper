@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe "PageObjectWrapper.open_page" do
   context "browser is closed" do
-    it "raises Errno::ECONNREFUSED (I don't understand why here it behaves like this)" do
-      expect{ PageObjectWrapper.open_page(:google_page) }.to raise_error(Errno::ECONNREFUSED)
+    it "raises PageObjectWrapper::BrowserNotFound" do
+      expect{ PageObjectWrapper.open_page(:google_page) }.to raise_error(PageObjectWrapper::BrowserNotFound)
     end
   end
 
@@ -17,15 +17,49 @@ describe "PageObjectWrapper.open_page" do
     after(:all){ PageObjectWrapper.browser.quit }
 
     it "raises errors" do        
-      expect{ PageObjectWrapper.open_page(:first_arg, :second_arg) }.to raise_error(ArgumentError)
       expect{ PageObjectWrapper.open_page(:unknown_page) }.to raise_error(PageObjectWrapper::UnknownPageObject)
       expect{ PageObjectWrapper.open_page(:wrong_google_page) }.to raise_error(PageObjectWrapper::UnmappedPageObject)
     end
 
-    it "returns opened PageObject instance" do
-      p = PageObjectWrapper.open_page(:google_page)
-      p.should be_an_instance_of(PageObject)
-      p.label_value.should eq(:google_page)
+    context "no optional arguments" do
+      it "returns opened PageObject instance" do
+        p = PageObjectWrapper.open_page(:google_page)
+        p.should be_an_instance_of(PageObject)
+        p.label_value.should eq(:google_page)
+      end
+    end
+
+    context "with optional arguments" do
+      context "optional hash key not Symbol" do
+        it "raises ArgumentError" do
+          expect{ PageObjectWrapper.open_page(:dynamic_url_page, 'a string' => 'a string') }.to raise_error ArgumentError, '"a string" not Symbol'
+        end
+      end
+      context "optional hash value not meaningful String" do
+        it "raises ArgumentError" do
+          expect{ PageObjectWrapper.open_page(:dynamic_url_page, :param => '') }.to raise_error ArgumentError, '"" not meaningful String'
+        end
+      end
+      context "one optional parameter not known" do
+        it "raises PageObjectWrapper::DynamicUrl" do
+          expect{ PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com', :unknown_url_parameter => '123') }.to raise_error PageObjectWrapper::DynamicUrl, ":unknown_url_parameter not known parameter"
+        end
+      end
+      context "at least one dynamic parameter specified" do
+        it "opens page with all parameters replaced with specified" do
+          begin
+            PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com')
+          rescue PageObjectWrapper::UnmappedPageObject
+            PageObject.browser.url.should =~ /google.\w+\/:path/
+          end
+        end
+      end
+      context "all dynamic parameters specified" do
+        it "opens page with all parameters replaced with specified" do
+          PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com', :path => 'advanced_search')
+          PageObject.browser.url.should =~ /google.\w+\/advanced_search/
+        end
+      end
     end
 
     context "domain is not specified" do

@@ -127,6 +127,21 @@ describe "define_page_object" do
     end
   end
 
+  context "validator" do
+    subject { page_object.validators[page_object.validators.collect(&:label_value).index(:textarea_value)] }
+
+    it { should be_a(Validator) }
+
+    describe "validator label" do
+      it_should_behave_like "a label"
+    end
+
+    describe "validator attributes" do
+      it { should respond_to(:validate_block_value) }
+      its(:validate_block_value) { should be_a Proc }
+    end
+  end
+
   context "table" do
     subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
 

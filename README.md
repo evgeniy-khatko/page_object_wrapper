@@ -70,7 +70,6 @@ where required attributes are marked with (*)
 
           checkbox(:cb){ locator :id => 'f5' }
           radio(:rb){ locator :id => 'f3' }
-
         end
 
         action(:press_cool_button, :test_page_with_table) do
@@ -78,7 +77,7 @@ where required attributes are marked with (*)
         end
 
         action(:fill_textarea, :some_test_page) do |fill_with|
-          data = (fill_with.empty?)? 'Default data' : fill_with
+          data = (fill_with.nil?)? 'Default data' : fill_with
           textarea(:id => 'f2').set data
         end
 
@@ -96,23 +95,33 @@ where required attributes are marked with (*)
         pagination(:some_pagination) do
           locator :xpath => ''
         end
+
+        validator(:textarea_value) do |expected|
+          textarea(:id => 'f2').value == expected
+        end
       end
 
 here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
-uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
-uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
+- uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
+- uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
+- all defined elements have labels
+- action and action\_alias defined with labels and next\_pages
+- validator defined with label
 
 #### openning the page
 *preconditions*  
 There is a directory, where we've defined a page\_object inside a \*\_page.rb file
 
 1. specify browser to be used by PageObjectWrapper  
-     @b = Watir::Browser.new  
-     PageObjectWrapper.use_browser @b  
+  
+       @b = Watir::Browser.new  
+       PageObjectWrapper.use_browser @b  
 2. load defined pages  
-     PageObjectWrapper.load("path/to/pages/directory")  
+  
+       PageObjectWrapper.load("path/to/pages/directory")  
 3. open page in browser  
-     test_page = PageObjectWrapper.open_page(:some_test_page)  
+  
+       test_page = PageObjectWrapper.open_page(:some_test_page)  
 
 *comments*
 - it's possible to use any Watir::Browser with any profile
@@ -122,8 +131,17 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
 - .open\_page method takes page label, directs browser to that page and returns corresponding page\_object
 - PageObjectWrapper.current\_page points to the opened page\_object
 - it's possible to set page\_object locator in 2 different ways: specifying full url (like in example) or specifying PageObjectWrapper.domain and page\_object local path (like in specs)
+- it's possible to set dynamic urls for pages, e.g.  
+  
+        PageObjectWrapper.define_page(:google){ locator 'www.google.com/:some_param' }  
+        PageObjectWrapper.open_page(:google, :some_param => 'advanced_search') # => 'http://google.com/advanced_search'  
 
-#### page\_object.xxx
+#### page\_object.xxx 
+*parameters*  
+no  
+*returns*  
+Watir::XXX element  
+  
 Defined elements can be accessed with their labels.
 - element from an element\_set is corresponds to real Watir::Element
 - elemets\_set corresponds to an Array of Watir::Element  
@@ -137,7 +155,12 @@ Defined elements can be accessed with their labels.
 
 
 
-#### feed\_xxx
+#### feed\_xxx 
+*parameters*  
+:fresh\_food, :missing\_food  
+*returns*  
+current\_page  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
@@ -156,14 +179,24 @@ Defined elements can be accessed with their labels.
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.feed_test_elements(:missing_food)
 
-    context "xxx is alias":
-      it "executes corresponding action":
-        tp = PageObjectWrapper.open_page(:some_test_page)
-        tp.fire_fill_textarea_alias
-        @b.textarea(:id => 'f2').value.should eq('Default data')
+#### xxx\_fresh\_food, xxx\_missing\_food  
+*parameters*  
+no  
+*returns*  
+fresh or missinf food value from page definition  
+  
+*preconditions*  
+**tp** is a :some\_test\_page object opened in the browser  
 
+    tp.tf_fresh_food # => 'some fresh food' 
+    tp.ta_fresh_food # => 'default fresh food'
 
-#### fire\_xxx
+#### fire\_xxx 
+*parameters*  
+optional arguments defined inside action  
+*returns*  
+next\_page from xxx action  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
@@ -183,9 +216,32 @@ Defined elements can be accessed with their labels.
       it "executes corresponding action":
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
-        @b.textarea(:id => 'f2').value.should eq('Default data')
 
-#### select\_from\_xxx
+#### validate\_xxx 
+*parameters*  
+optional arguments defined inside action  
+*returns*  
+anything block inside xxx validator returns
+it's expected that validator returns true | false
+  
+*preconditions*  
+**tp** is a :some\_test\_page object opened in the browser
+
+      tp = PageObjectWrapper.open_page(:some_test_page)
+      tp.fire_fill_textarea
+      tp.validate_textarea_value('Default data').should be(true)
+
+      tp = PageObjectWrapper.current_page
+      tp.fire_fill_textarea('User defined data')
+      tp.validate_textarea_value('User defined data').should be(true)
+
+#### select\_from\_xxx  
+*parameters*  
+:column\_1, :column\_2 => search\_value, :optional\_next\_page  
+*returns*  
+Watir::TableCell if next\_page not specified  
+next\_page if it is specified  
+  
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser  
 its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
@@ -215,6 +271,14 @@ correct arguments are:
         it "returns nil":
           tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
           tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
+
+      context "next_page specified":
+        context "found by String":
+          it "returns found cells":
+            tp.select_from_table_without_header(:column_0, {:column_1 => '103,000'}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+        context "not found by String":
+          it "returns nil":
+            tp.select_from_table_without_header(:column_0, {:column_1 => '123'}, :some_test_page).should eq nil
 
 #### each\_xxx
 TODO

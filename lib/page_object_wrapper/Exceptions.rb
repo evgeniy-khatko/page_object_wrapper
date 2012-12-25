@@ -5,4 +5,5 @@ module PageObjectWrapper
   class UnmappedPageObject < StandardError; end
   class Load < StandardError; end
   class BrowserNotFound < StandardError; end
+  class DynamicUrl < StandardError; end
 end
