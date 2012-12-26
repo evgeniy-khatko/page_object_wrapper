@@ -181,7 +181,7 @@ current\_page
 
 #### xxx\_menu  
 *parameters*  
-:food\_type
+:food\_type  
 *returns*  
 food value for this type which is defined in page\_object  
   
