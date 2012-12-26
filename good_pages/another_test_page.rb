@@ -5,8 +5,8 @@ PageObjectWrapper.define_page(:another_test_page) do
   elements_set(:test_elements) do
     select(:s1) do
       locator :id => 'f10'
-      fresh_food 'not in select list'
-      missing_food 'not in select list'
+      menu :fresh_food, 'not in select list'
+      menu :missing_food, 'not in select list'
     end
   end
 end

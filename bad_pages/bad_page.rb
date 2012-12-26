@@ -9,9 +9,11 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
 
   elements_set(:bad_elements) do
     element('') do
+      menu :fresh_food, Array.new
     end
     element(:e) do
       locator ':e element locator'
+      menu 'a string', 'another string'
     end
     element(:e) do
       locator Hash.new

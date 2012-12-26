@@ -5,8 +5,7 @@ PageObjectWrapper.define_page(:some_test_page) do
   elements_set(:test_elements) do
     text_field(:tf) do
       locator :id => 'f1'
-      missing_food 'some missing food'
-      fresh_food 'some fresh food'
+      menu :user_defined, 'some food'
     end
 
     textarea(:ta) do
@@ -15,13 +14,13 @@ PageObjectWrapper.define_page(:some_test_page) do
     
     select(:s1) do
       locator :id => 'f10'
-      fresh_food 'one'
-      missing_food 'three'
+      menu :fresh_food, 'one'
+      menu :missing_food, 'three'
     end
 
     select(:s2) do
-      locator :id => 'f11'
-      fresh_food 'one'
+      locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
+      menu :fresh_food, 'one'
     end
 
     checkbox(:cb){ locator :id => 'f5' }

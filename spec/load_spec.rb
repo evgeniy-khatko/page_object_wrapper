@@ -10,7 +10,9 @@ describe "PageObjectWrapper.load" do
       begin
         PageObjectWrapper.load(File.dirname(__FILE__)+'/../bad_pages')
       rescue Exception => e
+        #puts '=============='
         #puts e.message
+        #puts '=============='
         e.should be_a(PageObjectWrapper::Load)
         e.message.should == 'page_object("some_page_with_lost_of_errors"):
 	label "some_page_with_lost_of_errors" not a Symbol
@@ -19,13 +21,14 @@ elements_set("some elements_set label"):
 	label "some elements_set label" not a Symbol
 	element(""):
 		label "" not a Symbol
-		locator nil not a meaningful Hash
+		locator nil not a meaningful Hash or String
+		menu {:fresh_food=>[], :missing_food=>"default missing food"} not properly defined (must be {:food_type => \'a string\'})
 	element(:e):
 		element :e already defined
-		locator ":e element locator" not a meaningful Hash
+		menu {:fresh_food=>"default fresh food", :missing_food=>"default missing food", "a string"=>"another string"} not properly defined (must be {:food_type => \'a string\'})
 	element(:e):
 		element :e already defined
-		locator {} not a meaningful Hash
+		locator {} not a meaningful Hash or String
 action(""):
 	label "" not a Symbol
 	next_page nil not a Symbol

@@ -31,6 +31,8 @@ describe "define_page_object" do
 
     specify { subject.elements.collect(&:label_value).should include(:tf)}
     it { should respond_to(:tf) }
+    it { should respond_to(:tf_menu) }
+    it { should respond_to(:ta_menu) }
 
     specify { subject.actions.collect(&:label_value).should include(:press_cool_button)}
     it { should respond_to(:fire_press_cool_button) }
@@ -72,21 +74,22 @@ describe "define_page_object" do
       its(:locator_value) { should be_a Hash }
     end
 
-    describe "element food" do
-      it { should respond_to(:fresh_food) }
-      it { should respond_to(:fresh_food_value) }
-      it { should respond_to(:missing_food) }
-      it { should respond_to(:missing_food_value) }
+    describe "element menu" do
+      it { should respond_to(:menu) }
+      it { should respond_to(:menu_value) }
 
-      its(:fresh_food_value) { should be_a String}
-      its(:missing_food_value) { should be_a String}
+      its(:menu_value) { should be_a Hash}
 
-      describe "food default values" do
-        its(:fresh_food_value){ should eq('some fresh food') }
+      describe "default menu" do
+        its(:menu_value){ should have_key(:fresh_food) }        
+        its(:menu_value){ should have_value 'default fresh food'}
+        its(:menu_value){ should have_key(:missing_food) }
+        its(:menu_value){ should have_value 'default missing food'}
       end
 
-      describe "food user defined values" do
-        its(:missing_food_value){ should eq('some missing food') }
+      describe "user defined menu" do
+        its(:menu_value){ should have_key :user_defined }
+        its(:menu_value){ should have_value 'some food'}
       end
     end
   end

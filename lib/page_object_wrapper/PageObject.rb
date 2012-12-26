@@ -19,7 +19,6 @@ class PageObject < DslElementWithLocator
   @@current_page = nil
 
   UNIQ_ELEMENT_WAIT_PERIOD = 10
-  FOOD_TYPES = [:missing_food, :fresh_food]
   FEED_ALL = Regexp.new(/^feed_all$/)
   FEED_SET = Regexp.new(/^feed_([\w_]+)$/)
   FIRE_ACTION = Regexp.new(/^fire_([\w_]+)$/)
@@ -188,11 +187,8 @@ class PageObject < DslElementWithLocator
     eset.instance_eval(&block)
     @esets << eset
     eset.elements.each{|e|
-      PageObject.send :define_method, (e.label_value.to_s+'_fresh_food').to_sym do
-        e.fresh_food_value
-      end
-      PageObject.send :define_method, (e.label_value.to_s+'_missing_food').to_sym do
-        e.missing_food_value
+      PageObject.send :define_method, (e.label_value.to_s+'_menu').to_sym do |food_type|
+        e.menu_value[food_type].to_s
       end
     }
     @elements += eset.elements
@@ -250,7 +246,8 @@ class PageObject < DslElementWithLocator
         element_output = []
         element_output << "\t\telement #{e.label_value.inspect} already defined\n" if labeled(eset.elements).count(e.label_value) > 1
         element_output << "\t\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
-        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash\n" if not e.locator_value.is_a?(Hash) or e.locator_value.empty?
+        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) or e.locator_value.empty?
+        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be {:food_type => 'a string'})\n" if (e.menu_value.keys.collect(&:class).uniq! != [Symbol]) or (e.menu_value.values.collect(&:class).uniq! != [String])
         element_output.unshift "\telement(#{e.label_value.inspect}):\n" if not element_output.empty?
         output += element_output       
       }
@@ -311,20 +308,28 @@ private
   end
   
   def return_watir_element(e)
-    @@browser.send e.type, e.locator_value
+    el = nil
+    if e.locator_value.is_a? Hash
+      el = @@browser.send e.type, e.locator_value
+    elsif e.locator_value.is_a? String
+      el = @@browser.instance_eval e.locator_value
+    end
+    el
   end
 
   def return_array_of_watir_elements(eset)
-    eset.elements.collect{|e| @@browser.send(e.type, e.locator_value)}
+    eset.elements.collect{|e| return_watir_element(e)}
   end
 
-  def feed_elements(elements, food_type=nil)
+  def feed_elements(elements, menu_type=nil)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-    food_type ||= :fresh_food
-    raise PageObjectWrapper::UnknownFoodType, food_type.inspect if not FOOD_TYPES.include?(food_type)
+    menu_type ||= :fresh_food
+    known_types = []
+    elements.each{ |e| known_types += e.menu_value.keys }
+    raise PageObjectWrapper::UnknownMenuType, menu_type.inspect if not known_types.include?(menu_type)
     elements.each{|e|
-      food = e.send (food_type.to_s+'_value').to_sym
-      watir_element = @@browser.send e.type, e.locator_value
+      food = e.menu_value[menu_type].to_s
+      watir_element = return_watir_element(e)
       case watir_element
         when Watir::CheckBox
           watir_element.when_present.set
@@ -334,12 +339,8 @@ private
           begin
             watir_element.when_present.select food
           rescue Watir::Exception::NoValueFoundException => e
-            if food_type == :missing_food
-              # proceed to next element if missing_food is not found in select list
-              next
-            else
-              raise e
-            end
+            # proceed to next element if missing_food is not found in select list
+            next
           end
         else
           if watir_element.respond_to?(:set)

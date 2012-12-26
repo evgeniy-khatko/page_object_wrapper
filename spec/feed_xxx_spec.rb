@@ -32,10 +32,23 @@ describe "page_object.feed_xxx" do
       it "populates all xxx elements with :fresh_food" do
         tp = PageObjectWrapper.current_page
         tp.feed_test_elements(:fresh_food)
-        @b.text_field(:id=>'f1').value.should eq 'some fresh food'
+        @b.text_field(:id=>'f1').value.should eq 'default fresh food'
         @b.textarea(:id=>'f2').value.should eq 'default fresh food'
         @b.select(:id=>'f10').value.should eq "one"
         @b.select(:id=>'f11').value.should eq "one"
+        @b.checkbox(:id=>'f5').should be_set
+        @b.radio(:id=>'f3').should be_set
+      end
+    end
+
+    context "argument = :user_defined" do
+      it "populates all xxx elements with :user_defined" do
+        tp = PageObjectWrapper.open_page(:some_test_page)
+        tp.feed_test_elements(:user_defined)
+        @b.text_field(:id=>'f1').value.should eq 'some food'
+        @b.textarea(:id=>'f2').value.should eq ''
+        @b.select(:id=>'f10').value.should eq "two (default)"
+        @b.select(:id=>'f11').value.should eq "two (default)"
         @b.checkbox(:id=>'f5').should be_set
         @b.radio(:id=>'f3').should be_set
       end
@@ -45,7 +58,7 @@ describe "page_object.feed_xxx" do
       it "populates all xxx elements with :fresh_food" do
         tp = PageObjectWrapper.current_page
         tp.feed_test_elements
-        @b.text_field(:id=>'f1').value.should eq 'some fresh food'
+        @b.text_field(:id=>'f1').value.should eq 'default fresh food'
         @b.textarea(:id=>'f2').value.should eq 'default fresh food'
         @b.select(:id=>'f10').value.should eq "one"
         @b.select(:id=>'f11').value.should eq "one"
@@ -58,7 +71,7 @@ describe "page_object.feed_xxx" do
       it "populates all xxx elements with :missing_food" do
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.feed_test_elements(:missing_food)
-        @b.text_field(:id=>'f1').value.should eq 'some missing food'
+        @b.text_field(:id=>'f1').value.should eq 'default missing food'
         @b.textarea(:id=>'f2').value.should eq 'default missing food'
         @b.select(:id=>'f10').value.should eq "three"
         @b.select(:id=>'f11').value.should eq "two (default)"
@@ -67,13 +80,7 @@ describe "page_object.feed_xxx" do
       end
     end
 
-    context "fresh food is not found in select list" do
-      it "raises Watir Watir::Exception::NoValueFoundException" do
-        atp = PageObjectWrapper.open_page(:another_test_page)
-        expect{atp.feed_test_elements}.to raise_error(Watir::Exception::NoValueFoundException)
-      end
-    end
-    context "missing food is not found in select list" do
+    context "food not found in select list" do
       it "continues execution" do
         atp = PageObjectWrapper.current_page
         atp.feed_test_elements(:missing_food).should eq(atp)
