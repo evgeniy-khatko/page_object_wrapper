@@ -30,6 +30,9 @@ describe "page_object.xxx" do
 
       its(:rb){ should be_a(Watir::Radio) }
       its("rb.id"){ should eq 'f3' }
+
+      its(:table_with_header){ should be_a(Watir::Table) }
+      its("table_with_header.summary"){ should eq 'Each row names a Nordic country and specifies its total area and land area, in square kilometers' }
     end
 
     context "xxx is an elements_set" do

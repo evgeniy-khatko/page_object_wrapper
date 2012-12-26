@@ -222,6 +222,7 @@ class PageObject < DslElementWithLocator
     t = Table.new(label)
     t.instance_eval(&block)
     @tables << t
+    @elements << t
     t
   end
 
