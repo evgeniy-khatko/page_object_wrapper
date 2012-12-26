@@ -49,8 +49,7 @@ where required attributes are marked with (*)
         elements_set(:test_elements) do
           text_field(:tf) do
             locator :id => 'f1'
-            missing_food 'some missing food'
-            fresh_food 'some fresh food'
+            menu :user_defined, 'some food'
           end
 
           textarea(:ta) do
@@ -59,13 +58,13 @@ where required attributes are marked with (*)
           
           select(:s1) do
             locator :id => 'f10'
-            fresh_food 'one'
-            missing_food 'three'
+            menu :fresh_food, 'one'
+            menu :missing_food, 'three'
           end
 
           select(:s2) do
-            locator :id => 'f11'
-            fresh_food 'one'
+            locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
+            menu :fresh_food, 'one'
           end
 
           checkbox(:cb){ locator :id => 'f5' }
@@ -180,17 +179,17 @@ current\_page
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.feed_test_elements(:missing_food)
 
-#### xxx\_fresh\_food, xxx\_missing\_food  
+#### xxx\_menu  
 *parameters*  
-no  
+:food\_type
 *returns*  
-fresh or missinf food value from page definition  
+food value for this type which is defined in page\_object  
   
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser  
 
-    tp.tf_fresh_food # => 'some fresh food' 
-    tp.ta_fresh_food # => 'default fresh food'
+    tp.tf_menu(:fresh_food) # => 'default fresh food' 
+    tp.tf_menu(:user_defined) # => 'some food'
 
 #### fire\_xxx 
 *parameters*  
