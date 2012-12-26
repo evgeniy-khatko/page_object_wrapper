@@ -152,6 +152,7 @@ Defined elements can be accessed with their labels.
       tp.tf # => Watir::TextField
       tp.rb # => Watir::Radio
       tp.test_elements # => Array of Watir elements
+      tp.table_with_header # => Watir::Table
 
 
 
