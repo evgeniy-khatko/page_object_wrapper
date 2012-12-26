@@ -36,7 +36,9 @@ Or install it yourself as:
 Here in the structure of PageObjectWrapper:
 ![PageObjectWrapper scheme](https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png)
 
-where required attributes are marked with (*)
+where required attributes are marked with (\*)  
+optional arguments are enclosed with [ ]
+
 
 ### Examples
 
