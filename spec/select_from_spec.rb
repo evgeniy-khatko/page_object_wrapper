@@ -55,7 +55,7 @@ describe "page_object.select_from_xxx" do
     context "where == nil" do
       context "next_page not specified" do
         it "returns last row value from provided column" do
-          tp.select_from_table_without_header(:column_0).text.should eq 'Sweden'
+          tp.select_from_table_without_header(:column_0).text.should eq 'Iceland'
           tp.select_from_table_without_header(:column_1).text.should eq '449,964'
           tp.select_from_table_without_header(:column_2).text.should eq '410,928'
         end
