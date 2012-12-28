@@ -304,7 +304,9 @@ class PageObject < DslElementWithLocator
 private
 
   def self.find_page_object(l)
-    @@pages.select{|p| p.label_value == l}.first
+    p = @@pages.select{|p| p.label_value == l}.first
+    raise ArgumentError, "#{l.inspect} not known Page" if p.nil?
+    p
   end
   
   def return_watir_element(e)
@@ -385,21 +387,42 @@ private
       raise ArgumentError, "#{where.inspect} not a meaningful Hash" if not where.is_a? Hash or where.empty?
       raise ArgumentError, "#{where.inspect} has more than 1 keys" if not where.keys.length == 1
       raise ArgumentError, "#{where.keys.first.inspect} not a Symbol" if not where.keys.first.is_a? Symbol
-      raise ArgumentError, "#{where.keys.first.inspect} not in table header" if not table.header_value.include? where.keys.first
-      raise ArgumentError, "#{where.values.first.inspect} not a String or Regexp" if not (where.values.first.is_a? String or where.values.first.is_a? Regexp)
-      search_in_index = table.header_value.index(where.keys.first)
+      raise ArgumentError, "#{where.keys.first.inspect} not in table header and not == :row" if not ( table.header_value.include? where.keys.first or where.keys.first == :row )
+      raise ArgumentError, "#{where.values.first.inspect} not a String or Regexp or Integer" if not ( where.values.first.is_a? String or where.values.first.is_a? Regexp or where.values.first.is_a? Integer)
       search_value = where.values.first
-      t.rows.each{|r|
-        if search_value.is_a? String
-          found = r.cells[search_for_index] if r.cells[search_in_index].text == search_value
-        elsif search_value.is_a? Regexp
-          found = r.cells[search_for_index] if search_value.match(r.cells[search_in_index].text)
-        else
-          raise ArgumentError, "#{search_value} not a Regexp or String"
+      if where.keys.first == :row # finding by row number
+        raise ArgumentError, "#{where.values.first.inspect} not Integer" if not ( where.values.first.is_a? Integer)
+        begin 
+          found = t.rows[search_value+1].cells[search_for_index] # +1 because we want rows to start from 0 (similar to columns)
+        rescue Watir::Exception::UnknownObjectException
+          found = nil
         end
-      }
+      else # finding by String or Regexp
+        search_in_index = table.header_value.index(where.keys.first)
+        t.rows.each{|r|
+          if search_value.is_a? String
+            begin 
+              found = r.cells[search_for_index] if r.cells[search_in_index].text == search_value
+            rescue Watir::Exception::UnknownObjectException
+              found = nil
+            end
+          elsif search_value.is_a? Regexp
+            begin
+              found = r.cells[search_for_index] if search_value.match(r.cells[search_in_index].text)
+            rescue Watir::Exception::UnknownObjectException
+              found = nil
+            end
+          else
+            raise ArgumentError, "#{search_value} not a Regexp or String"
+          end
+        }
+      end
     else # where == nil
-      found = t.rows[t.rows.length/2].cells[search_for_index] # returning some "middle" row cell value
+      begin
+        found = t.rows[t.rows.length/2].cells[search_for_index] # returning some "middle" row cell value
+      rescue Watir::Exception::UnknownObjectException
+        found = nil
+      end
     end
 
     if not next_page.nil?
