@@ -273,6 +273,12 @@ correct arguments are:
         it "returns nil":
           tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil
           tp.select_from_table_with_header(:country, :total_area => /123/).should eq nil
+        context "found by row number":
+          it "returns found cells":
+            tp.select_from_table_without_header(:column_0, :row => 2).text.should eq 'Iceland'
+            tp.select_from_table_with_header(:country, :row => 3).text.should eq 'Norway'
+          it "returns nil":
+            tp.select_from_table_with_header(:country, :row => 123).should eq nil
 
       context "next_page specified":
         context "found by String":
@@ -281,6 +287,12 @@ correct arguments are:
         context "not found by String":
           it "returns nil":
             tp.select_from_table_without_header(:column_0, {:column_1 => '123'}, :some_test_page).should eq nil
+        context "found by row number":
+          it "returns found cells":
+            tp.select_from_table_without_header(:column_0, {:row => 2}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+            tp.select_from_table_with_header(:country, {:row => 3}, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
+          it "returns nil":
+            tp.select_from_table_with_header(:country, {:row => 123}, :some_test_page).should eq nil
 
 #### each\_xxx
 TODO
