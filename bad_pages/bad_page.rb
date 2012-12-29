@@ -20,13 +20,13 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
     end
   end
 
-  action('',nil) do
+  action('','a string') do
   end
 
   validator('') do
   end
 
-  action_alias('',nil){ action 'unknown action'}
+  action_alias('','a string'){ action 'unknown action'}
 
   table('') do
   end

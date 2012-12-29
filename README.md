@@ -44,63 +44,71 @@ optional arguments are enclosed with [ ]
 
 #### definition example
 
-      PageObjectWrapper.define_page(:some_test_page) do
-        locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
-        uniq_h1 :text => 'Testing display of HTML elements'
+    PageObjectWrapper.define_page(:some_test_page) do
+      #locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
+      locator 'file://'+Dir.pwd+'/good_pages/some_test_page.html'
+      uniq_h1 :text => 'Testing display of HTML elements'
 
-        elements_set(:test_elements) do
-          text_field(:tf) do
-            locator :id => 'f1'
-            menu :user_defined, 'some food'
-          end
-
-          textarea(:ta) do
-            locator :id => 'f2'
-          end
-          
-          select(:s1) do
-            locator :id => 'f10'
-            menu :fresh_food, 'one'
-            menu :missing_food, 'three'
-          end
-
-          select(:s2) do
-            locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
-            menu :fresh_food, 'one'
-          end
-
-          checkbox(:cb){ locator :id => 'f5' }
-          radio(:rb){ locator :id => 'f3' }
+      elements_set(:test_elements) do
+        text_field(:tf) do
+          locator :id => 'f1'
+          menu :user_defined, 'some food'
         end
 
-        action(:press_cool_button, :test_page_with_table) do
-          button(:name => 'foo').when_present.click
+        textarea(:ta) do
+          locator :id => 'f2'
+        end
+        
+        select(:s1) do
+          locator :id => 'f10'
+          menu :fresh_food, 'one'
+          menu :missing_food, 'three'
         end
 
-        action(:fill_textarea, :some_test_page) do |fill_with|
-          data = (fill_with.nil?)? 'Default data' : fill_with
-          textarea(:id => 'f2').set data
+        select(:s2) do
+          locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
+          menu :fresh_food, 'one'
         end
 
-        action_alias(:fill_textarea_alias, :some_test_page){ action :fill_textarea }
-
-        table(:table_without_header) do
-          locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
-        end
-
-        table(:table_with_header) do
-          locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
-          header [:country, :total_area, :land_area]
-        end
-
-        pagination(:some_pagination) do
-          locator :xpath => ''
-        end
-
-        validator(:textarea_value) do |expected|
-          textarea(:id => 'f2').value == expected
-        end
+        checkbox(:cb){ locator :id => 'f5' }
+        radio(:rb){ locator :id => 'f3' }
       end
+
+      action(:press_cool_button, :test_page_with_table) do
+        button(:name => 'foo').when_present.click
+      end
+
+      action(:fill_textarea, :some_test_page) do |fill_with|
+        data = (fill_with.nil?)? 'Default data' : fill_with
+        textarea(:id => 'f2').set data
+      end
+
+      action :fill_textarea_with_returned_value do |fill_with|
+        data = (fill_with.nil?)? 'Default data' : fill_with
+        textarea(:id => 'f2').set data
+        data
+      end 
+
+      action_alias(:fill_textarea_alias, :some_test_page){ action :fill_textarea }
+      action_alias(:fill_textarea_with_returned_value_alias){ action :fill_textarea_with_returned_value }
+
+      table(:table_without_header) do
+        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+      end
+
+      table(:table_with_header) do
+        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+        header [:country, :total_area, :land_area]
+      end
+
+      pagination(:some_pagination) do
+        locator :xpath => ''
+      end
+
+      validator(:textarea_value) do |expected|
+        textarea(:id => 'f2').value == expected
+      end
+    end
 
 here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
 - uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
@@ -210,9 +218,18 @@ next\_page from xxx action
       tp = PageObjectWrapper.current_page
       tp.fire_fill_textarea('User defined data')
 
-    it "returns next_page":
-      tp = PageObjectWrapper.current_page
-      np = tp.fire_press_cool_button
+    context "next_page == nil":
+      it "returns action returned value":
+        tp = PageObjectWrapper.current_page
+        data = tp.fire_fill_textarea_with_returned_value('data to fill with')
+        tp.validate_textarea_value(data).should be(true)
+
+    context "next_page not nil":
+      it "returns next_page":
+        tp = PageObjectWrapper.current_page
+        np = tp.fire_press_cool_button
+        np.should be_a(PageObject)
+        np.label_value.should eq(:test_page_with_table)
 
     context "xxx is alias":
       it "executes corresponding action":

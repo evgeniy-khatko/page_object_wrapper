@@ -34,19 +34,31 @@ describe "page_object.fire_xxx" do
       tp.validate_textarea_value('User defined data').should be(true)
     end
 
+    context "next_page == nil" do
+      it "returns action returned value" do
+        tp = PageObjectWrapper.current_page
+        data = tp.fire_fill_textarea_with_returned_value('data to fill with')
+        tp.validate_textarea_value(data).should be(true)
+      end
+    end
+
+    context "next_page not nil" do
+      it "returns next_page" do
+        tp = PageObjectWrapper.current_page
+        np = tp.fire_press_cool_button
+        np.should be_a(PageObject)
+        np.label_value.should eq(:test_page_with_table)
+      end
+    end
+
     context "xxx is alias" do
       it "executes corresponding action" do
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
         tp.validate_textarea_value('Default data').should be(true)
+        data = tp.fire_fill_textarea_with_returned_value_alias('data to fill with')
+        tp.validate_textarea_value(data).should be(true)
       end
-    end
-
-    it "returns next_page" do
-      tp = PageObjectWrapper.current_page
-      np = tp.fire_press_cool_button
-      np.should be_a(PageObject)
-      np.label_value.should eq(:test_page_with_table)
     end
 
   end

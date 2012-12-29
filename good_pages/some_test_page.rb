@@ -37,7 +37,14 @@ PageObjectWrapper.define_page(:some_test_page) do
     textarea(:id => 'f2').set data
   end
 
+  action :fill_textarea_with_returned_value do |fill_with|
+    data = (fill_with.nil?)? 'Default data' : fill_with
+    textarea(:id => 'f2').set data
+    data
+  end 
+
   action_alias(:fill_textarea_alias, :some_test_page){ action :fill_textarea }
+  action_alias(:fill_textarea_with_returned_value_alias){ action :fill_textarea_with_returned_value }
 
   table(:table_without_header) do
     locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'

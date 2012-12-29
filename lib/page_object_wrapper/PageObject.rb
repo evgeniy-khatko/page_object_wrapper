@@ -195,13 +195,13 @@ class PageObject < DslElementWithLocator
     eset
   end
 
-  def action(label, next_page, &block)
+  def action(label, next_page=nil, &block)
     a = Action.new(label, next_page, &block)
     @actions << a
     a
   end
 
-  def action_alias(label, next_page, &block)
+  def action_alias(label, next_page=nil, &block)
     a = Alias.new(label, next_page)
     a.instance_eval(&block)
     @aliases << a
@@ -256,8 +256,10 @@ class PageObject < DslElementWithLocator
       action_output = []
       action_output << "\taction #{a.label_value.inspect} already defined\n" if labeled(@actions).count(a.label_value) > 1
       action_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
-      action_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
-      action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      if not a.next_page_value.nil?
+        action_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
+        action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      end
       action_output << "\tfire event is not a Proc\n" if not a.fire_block_value.is_a?(Proc)
       action_output.unshift "action(#{a.label_value.inspect}):\n" if not action_output.empty?
       output += action_output
@@ -266,8 +268,10 @@ class PageObject < DslElementWithLocator
       alias_output = []
       alias_output << "\talias #{a.label_value.inspect} already defined\n" if labeled(@aliases).count(a.label_value) > 1
       alias_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
-      alias_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
-      alias_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      if not a.next_page_value.nil?
+        alias_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
+        alias_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+      end
       alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not labeled(@actions).include? a.action_value
       alias_output.unshift "alias(#{a.label_value.inspect}):\n" if not alias_output.empty?
       output += alias_output
@@ -358,9 +362,13 @@ private
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
-    @@browser.instance_exec *args, &block
-    self.class.map_current_page a.next_page_value
-    @@current_page
+    block_result = @@browser.instance_exec *args, &block
+    if not a.next_page_value.nil?
+      self.class.map_current_page a.next_page_value
+      return @@current_page
+    else
+      return block_result
+    end 
   end
 
   def run_validator(v, *args)

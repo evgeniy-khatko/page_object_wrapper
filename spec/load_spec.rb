@@ -31,12 +31,12 @@ elements_set("some elements_set label"):
 		locator {} not a meaningful Hash or String
 action(""):
 	label "" not a Symbol
-	next_page nil not a Symbol
-	next_page nil unknown page_object
+	next_page "a string" not a Symbol
+	next_page "a string" unknown page_object
 alias(""):
 	label "" not a Symbol
-	next_page nil not a Symbol
-	next_page nil unknown page_object
+	next_page "a string" not a Symbol
+	next_page "a string" unknown page_object
 	action "unknown action" not known Action
 validator(""):
 	label "" not a Symbol
