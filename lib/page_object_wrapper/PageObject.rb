@@ -447,12 +447,19 @@ private
   def run_each_subpage(p, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block_to_run = args[0]
-    pagination_links = find_pagination_links(p)
-    pagination_links.each{|link|
-      @@browser.goto link
-      self.class.map_current_page(@label)
-      block_to_run.call
-    }
+
+    next_link = @@browser.instance_eval p.locator_value
+    raise PageObjectWrapper::InvalidPagination if not next_link.present?
+    raise PageObjectWrapper::InvalidPagination, "#{p.locator_value.inspect} is not a String" if not p.locator_value.is_a? String
+    raise PageObjectWrapper::InvalidPagination, "#{p.finds} not found in #{p.locator_value}" if not p.locator_value =~ /#{p.finds.to_s}/
+    next_page_number = p.finds.to_i
+
+    while next_link.present?
+      next_link.click
+      self.instance_eval block_to_run
+      next_page_number += 1
+      next_link = @@browser.instance_eval p.locator_value.gsub( /#{finds.to_s}/,next_page_number.to_s )
+    end
   end
 
   def open_padination n
@@ -472,23 +479,4 @@ private
       instance_variable_get("@#{el.to_s.pluralize}")[labeled(instance_variable_get("@#{el.to_s.pluralize}")).index(label.to_sym)]
     end
   }
-
-  def find_pagination_links p
-    pagination_links = []
-    lnk_locator = p.locator_value
-    finds = p.finds
-    next_link = return_watir_element lnk_locator
-    next_page_number = finds
-
-    while next_link.present?
-      if lnk_locator.is_a? Hash
-        next_link = @@browser.send :link, lnk_locator
-      elsif lnk_locator.is_a? String
-        next_link = @@browser.instance_eval lnk_locator
-      end
-      pagination_links << next_link
-      next_page_number += 1
-      lnk_locator.gsub!( /#{finds.to_s}/,next_page_number.to_s )
-    end
-  end
 end
