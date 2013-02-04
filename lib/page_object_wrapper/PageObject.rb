@@ -288,7 +288,7 @@ class PageObject < DslElementWithLocator
       table_output = []
       table_output << "\ttable #{t.label_value.inspect} already defined\n" if labeled(@tables).count(t.label_value) > 1
       table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
-      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash\n" if not t.locator_value.is_a?(Hash) or t.locator_value.empty?
+      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash or String\n" if (not t.locator_value.is_a?(Hash) and not t.locator_value.is_a?(String)) or t.locator_value.empty?
       table_output << "\theader #{t.header_value.inspect} not a meaningful Array\n" if not t.header_value.is_a?(Array) or t.header_value.empty?
       table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
       output += table_output
@@ -297,7 +297,8 @@ class PageObject < DslElementWithLocator
       pagination_output = []
       pagination_output << "\tpagination #{p.label_value.inspect} already defined\n" if labeled(@paginations).count(p.label_value) > 1
       pagination_output << "\tlabel #{p.label_value.inspect} not a Symbol\n" if not p.label_value.is_a?(Symbol)
-      pagination_output << "\tlocator #{p.locator_value.inspect} not a meaningful Hash\n" if not p.locator_value.is_a?(Hash) or p.locator_value.empty?
+      pagination_output << "\tlocator #{p.locator_value.inspect} not a meaningful String\n" if not p.locator_value.is_a?(String) or p.locator_value.empty?
+      pagination_output << "\t\"#{p.finds_value}\" not found in #{p.locator_value}" if not p.locator_value =~ /#{p.finds_value.to_s}/
       pagination_output.unshift "pagination(#{p.label_value.inspect}):\n" if not pagination_output.empty?
       output += pagination_output
     }
@@ -447,18 +448,18 @@ private
   def run_each_subpage(p, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     block_to_run = args[0]
+    puts block_to_run.inspect
 
     next_link = @@browser.instance_eval p.locator_value
+    puts next_link.inspect
     raise PageObjectWrapper::InvalidPagination if not next_link.present?
-    raise PageObjectWrapper::InvalidPagination, "#{p.locator_value.inspect} is not a String" if not p.locator_value.is_a? String
-    raise PageObjectWrapper::InvalidPagination, "#{p.finds} not found in #{p.locator_value}" if not p.locator_value =~ /#{p.finds.to_s}/
-    next_page_number = p.finds.to_i
+    next_page_number = p.finds_value.to_i
 
     while next_link.present?
       next_link.click
       self.instance_eval block_to_run
       next_page_number += 1
-      next_link = @@browser.instance_eval p.locator_value.gsub( /#{finds.to_s}/,next_page_number.to_s )
+      next_link = @@browser.instance_eval p.locator_value.gsub( /#{p.finds_value.to_s}/,next_page_number.to_s )
     end
   end
 

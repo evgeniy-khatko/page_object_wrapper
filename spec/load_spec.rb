@@ -42,14 +42,14 @@ validator(""):
 	label "" not a Symbol
 table(""):
 	label "" not a Symbol
-	locator nil not a meaningful Hash
+	locator nil not a meaningful Hash or String
 table(:some_table):
-	locator nil not a meaningful Hash
+	locator nil not a meaningful Hash or String
 	header [] not a meaningful Array
 pagination(""):
 	label "" not a Symbol
-	locator "pagination locator" not a meaningful Hash
-'
+	locator {} not a meaningful String
+	"" not found in {}'
       end
     end
   end

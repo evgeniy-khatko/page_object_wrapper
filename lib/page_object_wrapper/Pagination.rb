@@ -1,6 +1,6 @@
 require 'Dsl'
 class Pagination < DslElement
-  attr_reader :locator_value
+  attr_reader :locator_value, :finds_value
 
   def initialize(label)
     super label

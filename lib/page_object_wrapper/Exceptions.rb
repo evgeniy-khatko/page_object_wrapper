@@ -6,4 +6,5 @@ module PageObjectWrapper
   class Load < StandardError; end
   class BrowserNotFound < StandardError; end
   class DynamicUrl < StandardError; end
+  class InvalidPagination < StandardError; end
 end

@@ -55,10 +55,6 @@ PageObjectWrapper.define_page(:some_test_page) do
     header [:country, :total_area, :land_area]
   end
 
-  pagination(:some_pagination) do
-    locator :xpath => ''
-  end
-
   validator(:textarea_value) do |expected|
     textarea(:id => 'f2').value == expected
   end

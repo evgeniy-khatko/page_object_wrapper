@@ -35,7 +35,7 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
   end
 
   pagination('') do
-    locator 'pagination locator'
+    locator Hash.new, 1
   end
 end
 
