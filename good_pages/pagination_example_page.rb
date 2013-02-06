@@ -12,7 +12,7 @@ PageObjectWrapper.define_page :yandex_pagination do
   uniq_input :class => 'b-form-input__input'  
 
   pagination :pagination do
-    locator "link(:class => 'b-pager__page b-link b-link_ajax_yes')", '2'
+    locator "link(:class => 'b-pager__page b-link b-link_ajax_yes', :text => '2')", '2'
   end
 end
 
@@ -21,6 +21,6 @@ PageObjectWrapper.define_page(:google_invalid_pagination) do
   uniq_input :id => 'gbqfq'
 
   pagination :invalid_pagination do
-    locator "table(:id => 'nav').tr.td.a(:text => '2')", '3'
+    locator "table(:id => 'nav').tr.td.a(:text => '1000')", '1000'
   end
 end

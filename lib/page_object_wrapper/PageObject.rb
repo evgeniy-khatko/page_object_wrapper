@@ -41,7 +41,7 @@ class PageObject < DslElementWithLocator
   end
 
   # lazy evaluated calls of real watir elements are handled by :method_missing
-  def method_missing(method_name, *args)
+  def method_missing(method_name, *args, &block)
     case 
       when KNOWN_ELEMENTS.include?(method_name.to_s.gsub(/^uniq_/,''))
         # page_object.uniq_xxx(hash)
@@ -81,7 +81,7 @@ class PageObject < DslElementWithLocator
       when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
         # page_object.each_pagination
         pagination = pagination_for($1)
-        run_each_subpage(pagination, *args)
+        run_each_subpage(pagination, *args, &block)
       when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
         # page_object.open_padination(1)
         pagination = pagination_for($1)
@@ -298,7 +298,7 @@ class PageObject < DslElementWithLocator
       pagination_output << "\tpagination #{p.label_value.inspect} already defined\n" if labeled(@paginations).count(p.label_value) > 1
       pagination_output << "\tlabel #{p.label_value.inspect} not a Symbol\n" if not p.label_value.is_a?(Symbol)
       pagination_output << "\tlocator #{p.locator_value.inspect} not a meaningful String\n" if not p.locator_value.is_a?(String) or p.locator_value.empty?
-      pagination_output << "\t\"#{p.finds_value}\" not found in #{p.locator_value}" if not p.locator_value =~ /#{p.finds_value.to_s}/
+      pagination_output << "\t\"#{p.finds_value}\" not found in #{p.locator_value}\n" if not p.locator_value =~ /#{p.finds_value.to_s}/
       pagination_output.unshift "pagination(#{p.label_value.inspect}):\n" if not pagination_output.empty?
       output += pagination_output
     }
@@ -445,21 +445,20 @@ private
     end
   end
 
-  def run_each_subpage(p, *args)
+  def run_each_subpage(p, opts, &block)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-    block_to_run = args[0]
-    puts block_to_run.inspect
+    limit = opts...
 
     next_link = @@browser.instance_eval p.locator_value
-    puts next_link.inspect
     raise PageObjectWrapper::InvalidPagination if not next_link.present?
     next_page_number = p.finds_value.to_i
 
     while next_link.present?
-      next_link.click
-      self.instance_eval block_to_run
+      next_link.when_present.click
+      block.call(self)
       next_page_number += 1
-      next_link = @@browser.instance_eval p.locator_value.gsub( /#{p.finds_value.to_s}/,next_page_number.to_s )
+      next_link_locator = p.locator_value.gsub( p.finds_value.to_s, next_page_number.to_s )
+      next_link = @@browser.instance_eval next_link_locator
     end
   end
 

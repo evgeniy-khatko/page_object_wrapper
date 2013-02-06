@@ -8,7 +8,7 @@ describe 'page_object.each_xxx' do
  #   end
  # end
 
-  context "browser is openen" do
+  context "browser is opened" do
     before(:all){
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
@@ -24,10 +24,10 @@ describe 'page_object.each_xxx' do
 
     context "correct parameters" do
       it "opens browser on subeach page and yields corresponding page_object" do
-        gp = PageObjectWrapper.open_page(:google_pagination)
-        gp.pagination_each{ |subpage| subpage.should be_a PageObject }
+        #gp = PageObjectWrapper.open_page(:google_pagination)
+        #gp.pagination_each{ |subpage| subpage.should be_a PageObject }
         yp = PageObjectWrapper.open_page(:yandex_pagination)
-        yp.pagination_each{ |subpage| subpage.should be_a PageObject }
+        yp.pagination_each(:limit => 3, :test => 'test'){ |subpage| subpage.should be_a PageObject }
       end
     end
   end
