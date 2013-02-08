@@ -3,7 +3,11 @@ PageObjectWrapper.define_page(:google_pagination) do
   uniq_input :id => 'gbqfq'
 
   pagination :pagination do
-    locator "table(:id => 'nav').tr.td.a(:text => '2')", '2'
+    locator "a(:text => '2')", '2'
+  end
+
+  validator :current_number? do |n|
+    td( :text => n.to_s ).present?
   end
 end
 
@@ -13,6 +17,10 @@ PageObjectWrapper.define_page :yandex_pagination do
 
   pagination :pagination do
     locator "link(:class => 'b-pager__page b-link b-link_ajax_yes', :text => '2')", '2'
+  end
+
+  validator :current_number? do |n|
+    div( :class => 'b-pager__pages', :text => /#{n.to_s}.*/ ).present?
   end
 end
 

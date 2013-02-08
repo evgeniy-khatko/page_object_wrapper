@@ -174,20 +174,32 @@ current\_page
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
-    context "argument = :fresh_food":
-      it "populates all xxx elements with :fresh_food":
-        tp = PageObjectWrapper.current_page
-        tp.feed_test_elements(:fresh_food)
+      context "menu not specified":
+        it "does nothing":
+          tp.feed_test_elements
+          browser.text_field(:id => 'f1').value.should eq 'Default text.'
+          ....
 
-    context "argument = nil":
-      it "populates all xxx elements with :fresh_food":
-        tp = PageObjectWrapper.current_page
-        tp.feed_test_elements
+      describe "basic usage": 
+        it "FEEDS elements which have provided menu inside defimition":
+          tp.feed_test_elements(:loud)
+          browser.text_field(:id => 'f1').value.should eq 'tf food'
+          ....
 
-    context "argument = :missing_food":
-      it "populates all xxx elements with :missing_food":
-        tp = PageObjectWrapper.open_page(:some_test_page)
-        tp.feed_test_elements(:missing_food)
+        it "feeds ONLY elements which has provided menu":
+          tp.feed_test_elements(:quite)
+          browser.text_field(:id => 'f1').value.should eq 'Default text.'
+          ....
+
+        it "overrides defined menu when passing arguments":
+          tp.feed_test_elements(:loud, :tf => 'cheef menu', :rb1 => false, :rb2 => true, :cb2 => true, :s2 => 'three')
+          browser.text_field(:id => 'f1').value.should eq 'cheef menu'
+          ....
+
+        it "can be used without providing a menu":
+          tp.feed_test_elements(:tf => 'cheef menu', :rb2 => true, :cb2 => true, :s2 => 'three')
+          browser.text_field(:id => 'f1').value.should eq 'cheef menu'
+          ....
 
 #### xxx\_menu  
 *parameters*  
@@ -198,8 +210,8 @@ food value for this type which is defined in page\_object
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser  
 
-    tp.tf_menu(:fresh_food) # => 'default fresh food' 
-    tp.tf_menu(:user_defined) # => 'some food'
+    tp.tf_menu(:loud) # => 'tf food' 
+    tp.rb1_menu(:loud) # => 'true' # pay attention that String is being returned (not true, TrueClass)
 
 #### fire\_xxx 
 *parameters*  
@@ -312,9 +324,25 @@ correct arguments are:
             tp.select_from_table_with_header(:country, {:row => 123}, :some_test_page).should eq nil
 
 #### each\_xxx
-TODO
+      context "correct parameters ( limit = 3 )":
+        it "opens browser on subeach page and yields corresponding page_object":
+          gp = PageObjectWrapper.open_page(:google_pagination)
+          counter = 0
+          gp.pagination_each( :limit => 3 ){ |subpage| 
+            counter += 1
+            subpage.should be_a PageObject 
+            subpage.validate_current_number?(counter).should be_true
+          }
 #### open\_xxx
-TODO
+      context "correct parameters":
+        it "opens browser on provided subpage returns corresponding page_object":
+          n = 10
+          yp = PageObjectWrapper.open_page(:yandex_pagination)
+          yp.pagination_open(n).should be_a PageObject
+          yp.validate_current_number?(n).should be_true
+          gp = PageObjectWrapper.open_page(:google_pagination)
+          gp.pagination_open(n).should be_a PageObject
+          gp.validate_current_number?(n).should be_true
 ## Contributing
 
 1. Fork it

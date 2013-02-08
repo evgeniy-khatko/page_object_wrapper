@@ -7,4 +7,5 @@ module PageObjectWrapper
   class BrowserNotFound < StandardError; end
   class DynamicUrl < StandardError; end
   class InvalidPagination < StandardError; end
+  class OutOfBoundsSubpage < StandardError; end
 end

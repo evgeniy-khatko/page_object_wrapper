@@ -80,16 +80,9 @@ describe "define_page_object" do
 
       its(:menu_value) { should be_a Hash}
 
-      describe "default menu" do
-        its(:menu_value){ should have_key(:fresh_food) }        
-        its(:menu_value){ should have_value 'default fresh food'}
-        its(:menu_value){ should have_key(:missing_food) }
-        its(:menu_value){ should have_value 'default missing food'}
-      end
-
       describe "user defined menu" do
-        its(:menu_value){ should have_key :user_defined }
-        its(:menu_value){ should have_value 'some food'}
+        its(:menu_value){ should have_key :loud }
+        its(:menu_value){ should have_value 'tf food'}
       end
     end
   end
@@ -191,7 +184,7 @@ describe "define_page_object" do
   
     describe "pagination locator" do
       it_should_behave_like "a locator"
-      its(:locator_value) { should be_a Hash }
+      its(:locator_value) { should be_a String }
     end
   end
 end

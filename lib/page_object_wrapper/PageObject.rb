@@ -25,7 +25,7 @@ class PageObject < DslElementWithLocator
   SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
   PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
   PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
-  VALIDATE = Regexp.new(/^validate_([\w_]+)$/)
+  VALIDATE = Regexp.new(/^validate_([\w_\?]+)$/)
     
   def initialize(label)
     super label
@@ -247,7 +247,7 @@ class PageObject < DslElementWithLocator
         element_output << "\t\telement #{e.label_value.inspect} already defined\n" if labeled(eset.elements).count(e.label_value) > 1
         element_output << "\t\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
         element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) or e.locator_value.empty?
-        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be {:food_type => 'a string'})\n" if (e.menu_value.keys.collect(&:class).uniq! != [Symbol]) or (e.menu_value.values.collect(&:class).uniq! != [String])
+        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (e.menu_value.keys.collect(&:class).uniq != [Symbol]) or not (e.menu_value.values.collect(&:class).uniq - [String, TrueClass, FalseClass]).empty?
         element_output.unshift "\telement(#{e.label_value.inspect}):\n" if not element_output.empty?
         output += element_output       
       }
@@ -328,30 +328,38 @@ private
     eset.elements.collect{|e| return_watir_element(e)}
   end
 
-  def feed_elements(elements, menu_type=nil)
+  def feed_elements(elements, *args)
+    menu_name, cheef_menu = nil, nil
+    
+    if args[0].is_a? Symbol
+      menu_name = args[0]
+      cheef_menu = args[1]
+    elsif args[0].is_a? Hash
+      cheef_menu = args[0]
+    end
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-    menu_type ||= :fresh_food
-    known_types = []
-    elements.each{ |e| known_types += e.menu_value.keys }
-    raise PageObjectWrapper::UnknownMenuType, menu_type.inspect if not known_types.include?(menu_type)
+    if not cheef_menu.nil?
+      raise ArgumentError, "#{cheef_menu.inspect} not meaningful Hash" if not cheef_menu.is_a? Hash or cheef_menu.empty?
+    end
+    menus = []
+    elements.each{ |e| menus += e.menu_value.keys }
     elements.each{|e|
-      food = e.menu_value[menu_type].to_s
+      if not cheef_menu.nil? and cheef_menu.keys.include? e.label_value
+        food = cheef_menu[e.label_value]
+      else
+        food = e.menu_value[menu_name].to_s
+      end
       watir_element = return_watir_element(e)
       case watir_element
         when Watir::CheckBox
-          watir_element.when_present.set
+          watir_element.when_present.set eval(food) if ["true", "false"].include? food
         when Watir::Radio
-          watir_element.when_present.set
+          watir_element.when_present.set if food=="true"          
         when Watir::Select
-          begin
-            watir_element.when_present.select food
-          rescue Watir::Exception::NoValueFoundException => e
-            # proceed to next element if missing_food is not found in select list
-            next
-          end
+          watir_element.select food if watir_element.include? food
         else
           if watir_element.respond_to?(:set)
-            watir_element.when_present.set food
+            watir_element.when_present.set food if food!=''
           else
             raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, e) + ' check element type'
           end
@@ -445,25 +453,38 @@ private
     end
   end
 
-  def run_each_subpage(p, opts, &block)
+  def run_each_subpage(p, opts=nil, &block)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-    limit = opts...
+    limit = opts[:limit] if not opts.nil?
+    raise PageObjectWrapper::InvalidPagination, opts.inspect if limit < 0 if not limit.nil?
 
-    next_link = @@browser.instance_eval p.locator_value
-    raise PageObjectWrapper::InvalidPagination if not next_link.present?
-    next_page_number = p.finds_value.to_i
+    current_link = @@browser.instance_eval p.locator_value
+    raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not current_link.present?
+    current_page_number = p.finds_value.to_i
+    counter = 0
 
-    while next_link.present?
-      next_link.when_present.click
-      block.call(self)
-      next_page_number += 1
-      next_link_locator = p.locator_value.gsub( p.finds_value.to_s, next_page_number.to_s )
-      next_link = @@browser.instance_eval next_link_locator
+    while current_link.present?
+      break if limit.is_a? Integer and counter >= limit
+      current_link.when_present.click
+      self.class.map_current_page self.label_value
+      current_link.wait_while_present # waiting for the page to load by waiting current_link to become inactive
+      block.call self
+      current_page_number += 1
+      current_link_locator = p.locator_value.gsub( p.finds_value.to_s, current_page_number.to_s )
+      current_link = @@browser.instance_eval current_link_locator
+      counter += 1
     end
   end
 
-  def open_padination n
+  def open_subpage p, n, *args
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+    pagination_link = @@browser.instance_eval p.locator_value
+    raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not pagination_link.present?
+    n_th_link_locator = p.locator_value.gsub( p.finds_value.to_s, n.to_s )
+    n_th_link = @@browser.instance_eval n_th_link_locator
+    n_th_link.when_present.click
+    self.class.map_current_page self.label_value
+    self
   end
 
 

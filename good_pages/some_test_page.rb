@@ -6,26 +6,46 @@ PageObjectWrapper.define_page(:some_test_page) do
   elements_set(:test_elements) do
     text_field(:tf) do
       locator :id => 'f1'
-      menu :user_defined, 'some food'
+      menu :loud, 'tf food'
     end
 
     textarea(:ta) do
       locator :id => 'f2'
+      menu :loud, 'ta food'
     end
+
+    radio(:rb1){ 
+      locator :id => 'f3' 
+      menu :loud, true
+      menu :quite, false
+    }
     
+    radio(:rb2){ 
+      locator :id => 'f4'
+      menu :loud, false 
+    }
+
+    checkbox(:cb1){ 
+      locator :id => 'f5'
+      menu :loud, true 
+      menu :quite, false
+    }
+
+    checkbox(:cb2){ 
+      locator :id => 'f6'
+      menu :loud, false 
+    }
+
     select(:s1) do
       locator :id => 'f10'
-      menu :fresh_food, 'one'
-      menu :missing_food, 'three'
+      menu :loud, 'one'
+      menu :quite, 'two (default)'
     end
 
     select(:s2) do
       locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
-      menu :fresh_food, 'one'
+      menu :loud, 'one'
     end
-
-    checkbox(:cb){ locator :id => 'f5' }
-    radio(:rb){ locator :id => 'f3' }
   end
 
   action(:press_cool_button, :test_page_with_table) do
@@ -57,5 +77,9 @@ PageObjectWrapper.define_page(:some_test_page) do
 
   validator(:textarea_value) do |expected|
     textarea(:id => 'f2').value == expected
+  end
+
+  pagination :some_pagination do
+    locator "link(:text => 2)", 2
   end
 end

@@ -5,7 +5,7 @@ class Element < DslElementWithLocator
   def initialize(label, type)
     super label
     @type = type
-    @menu = { :fresh_food => 'default fresh food', :missing_food => 'default missing food' }
+    @menu = Hash.new
   end
 
   def menu food_type, value

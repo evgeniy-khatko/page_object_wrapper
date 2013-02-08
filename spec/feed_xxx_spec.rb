@@ -14,76 +14,69 @@ describe "page_object.feed_xxx" do
       @b = Watir::Browser.new
       PageObjectWrapper.use_browser @b
     }
+    before(:each){ @tp = PageObjectWrapper.open_page(:some_test_page) }
     after(:all){ PageObjectWrapper.browser.quit }
-
-    it "returns current page object" do
-      tp = PageObjectWrapper.open_page(:some_test_page)
-      tp.feed_test_elements.should eq(tp)
-    end
     
     context "xxx not found among current_page element_sets" do
       it "raises NoMethodError" do
-        tp = PageObjectWrapper.current_page
-        expect{tp.feed_empty_set}.to raise_error(NoMethodError)
+        expect{@tp.feed_unknown_elements_set}.to raise_error(NoMethodError)
       end
     end
 
-    context "argument = :fresh_food" do
-      it "populates all xxx elements with :fresh_food" do
-        tp = PageObjectWrapper.current_page
-        tp.feed_test_elements(:fresh_food)
-        @b.text_field(:id=>'f1').value.should eq 'default fresh food'
-        @b.textarea(:id=>'f2').value.should eq 'default fresh food'
-        @b.select(:id=>'f10').value.should eq "one"
-        @b.select(:id=>'f11').value.should eq "one"
-        @b.checkbox(:id=>'f5').should be_set
-        @b.radio(:id=>'f3').should be_set
+    it "returns current page object" do
+      @tp.feed_test_elements(:quite).should be_a PageObject
+    end
+
+    context "menu not specified" do
+      it "does nothing" do
+        @tp.feed_test_elements
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f3').should_not be_set
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f5').should_not be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f10').value.should eq 'two (default)'
+        @b.select(:id => 'f11').value.should eq 'two (default)'
       end
     end
 
-    context "argument = :user_defined" do
-      it "populates all xxx elements with :user_defined" do
-        tp = PageObjectWrapper.open_page(:some_test_page)
-        tp.feed_test_elements(:user_defined)
-        @b.text_field(:id=>'f1').value.should eq 'some food'
-        @b.textarea(:id=>'f2').value.should eq ''
-        @b.select(:id=>'f10').value.should eq "two (default)"
-        @b.select(:id=>'f11').value.should eq "two (default)"
-        @b.checkbox(:id=>'f5').should be_set
-        @b.radio(:id=>'f3').should be_set
-      end
-    end
+    describe "basic usage" do 
+      it "FEEDS elements which has provided menu" do
+        @tp.feed_test_elements(:loud)
+        @b.text_field(:id => 'f1').value.should eq 'tf food'
+        @b.textarea(:id => 'f2').value.should eq "ta food"
+        @b.radio(:id => 'f3').should be_set
+        @b.radio(:id => 'f4').should_not be_set
+        @b.checkbox(:id => 'f5').should be_set
+        @b.checkbox(:id => 'f6').should_not be_set
+        @b.select(:id => 'f10').value.should eq 'one'
+        @b.select(:id => 'f11').value.should eq 'one'
+      end    
 
-    context "argument = nil" do
-      it "populates all xxx elements with :fresh_food" do
-        tp = PageObjectWrapper.current_page
-        tp.feed_test_elements
-        @b.text_field(:id=>'f1').value.should eq 'default fresh food'
-        @b.textarea(:id=>'f2').value.should eq 'default fresh food'
-        @b.select(:id=>'f10').value.should eq "one"
-        @b.select(:id=>'f11').value.should eq "one"
-        @b.checkbox(:id=>'f5').should be_set
-        @b.radio(:id=>'f3').should be_set
-      end
-    end
+      it "feeds ONLY elements which has provided menu" do
+        @tp.feed_test_elements(:quite)
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'two (default)'
+      end    
 
-    context "argument = :missing_food" do
-      it "populates all xxx elements with :missing_food" do
-        tp = PageObjectWrapper.open_page(:some_test_page)
-        tp.feed_test_elements(:missing_food)
-        @b.text_field(:id=>'f1').value.should eq 'default missing food'
-        @b.textarea(:id=>'f2').value.should eq 'default missing food'
-        @b.select(:id=>'f10').value.should eq "three"
-        @b.select(:id=>'f11').value.should eq "two (default)"
-        @b.checkbox(:id=>'f5').should be_set
-        @b.radio(:id=>'f3').should be_set
+      it "overrides defined menu when passing arguments" do
+        @tp.feed_test_elements(:loud, :tf => 'cheef menu', :rb1 => false, :rb2 => true, :cb2 => true, :s2 => 'three')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'three'
       end
-    end
 
-    context "food not found in select list" do
-      it "continues execution" do
-        atp = PageObjectWrapper.current_page
-        atp.feed_test_elements(:missing_food).should eq(atp)
+      it "can be used without providing a menu" do
+        @tp.feed_test_elements(:tf => 'cheef menu', :rb2 => true, :cb2 => true, :s2 => 'three')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'three'
       end
     end
   end

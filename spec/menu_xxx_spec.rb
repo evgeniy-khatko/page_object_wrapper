@@ -9,21 +9,17 @@ describe "getting food specified for element" do
 
     it{ should respond_to(:tf_menu) }
 
-    it "tf_menu(:fresh_food)" do
-      subject.tf_menu(:fresh_food).should eq 'default fresh food'
+    it "tf_menu(:loud)" do
+      subject.tf_menu(:loud).should eq 'tf food'
     end
-    it "tf_menu(:missing_food)" do
-      subject.tf_menu(:missing_food).should eq 'default missing food'
+    it "rb1(:quite)" do
+      subject.rb1_menu(:quite).should eq "false"
     end
-    it "tf_menu(:user_defined)" do
-      subject.tf_menu(:user_defined).should eq 'some food'
-    end
-    it "tf_menu(:unknown_food)" do
+    it "tf_menu(:unknown_menu)" do
       subject.tf_menu(:unknown_food).should eq ''
     end
-    it "tf_menu('unknown_food')" do
+    it "s2_menu('unknown_food')" do
       subject.tf_menu(:unknown_food).should eq ''
     end
-
   end
 end
