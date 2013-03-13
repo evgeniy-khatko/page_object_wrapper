@@ -10,6 +10,7 @@ require 'Alias'
 require 'Validator'
 require 'Table'
 require 'Pagination'
+require 'Element'
 require 'known_elements'
 
 class PageObject < DslElementWithLocator
@@ -20,12 +21,13 @@ class PageObject < DslElementWithLocator
 
   UNIQ_ELEMENT_WAIT_PERIOD = 10
   FEED_ALL = Regexp.new(/^feed_all$/)
-  FEED_SET = Regexp.new(/^feed_([\w_]+)$/)
+  FEED = Regexp.new(/^feed_([\w_]+)$/)
   FIRE_ACTION = Regexp.new(/^fire_([\w_]+)$/)
   SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
   PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
   PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
   VALIDATE = Regexp.new(/^validate_([\w_\?]+)$/)
+  PRESS = Regexp.new(/^press_([\w_\?]+)$/)
     
   def initialize(label)
     super label
@@ -39,6 +41,14 @@ class PageObject < DslElementWithLocator
     @tables = []
     @paginations = []
   end
+
+  KNOWN_ELEMENTS.each{|m|
+    PageObject.send :define_method, m do |l, &b|
+      e = Element.new(l, m.to_sym)
+      e.instance_eval(&b)
+      @elements << e
+    end
+  }
 
   # lazy evaluated calls of real watir elements are handled by :method_missing
   def method_missing(method_name, *args, &block)
@@ -58,10 +68,14 @@ class PageObject < DslElementWithLocator
       when FEED_ALL.match(method_name)
         # page_object.feed_all(:fresh_food)
         feed_elements(@elements, *args)
-      when (FEED_SET.match(method_name) and has_eset?($1))
+      when (FEED.match(method_name) and has_eset?($1))
         # page_object.feed_some_elements_set(:fresh_food)
         eset = eset_for($1)
         feed_elements(eset.elements, *args)
+      when (FEED.match(method_name) and has_element?($1))
+        # page_object.feed_some_element(:fresh_food)
+        e = element_for($1)
+        feed_elements([e], *args)
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
         a = action_for($1)
@@ -86,6 +100,10 @@ class PageObject < DslElementWithLocator
         # page_object.open_padination(1)
         pagination = pagination_for($1)
         open_subpage(pagination, *args)
+      when (PRESS.match(method_name) and has_element?($1))
+        # page_object.press_element
+        element = element_for($1)
+        press(element)
       else
         super
     end
@@ -107,8 +125,11 @@ class PageObject < DslElementWithLocator
       when FEED_ALL.match(method_name)
         # page_object.feed_all(:fresh_food)
         true
-      when (FEED_SET.match(method_name) and has_eset?($1))
+      when (FEED.match(method_name) and has_eset?($1))
         # page_object.feed_some_elements_set(:fresh_food)
+        true
+      when (FEED.match(method_name) and has_element?($1))
+        # page_object.feed_some_element(:fresh_food)
         true
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
@@ -127,6 +148,9 @@ class PageObject < DslElementWithLocator
         true
       when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
         # page_object.open_padination(1)
+        true
+      when (PRESS.match(method_name) and has_element?($1))
+        # page_object.press_element
         true
       else
         super
@@ -218,7 +242,6 @@ class PageObject < DslElementWithLocator
     t = Table.new(label)
     t.instance_eval(&block)
     @tables << t
-    @elements << t
     t
   end
 
@@ -246,8 +269,11 @@ class PageObject < DslElementWithLocator
         element_output = []
         element_output << "\t\telement #{e.label_value.inspect} already defined\n" if labeled(eset.elements).count(e.label_value) > 1
         element_output << "\t\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
-        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) or e.locator_value.empty?
-        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (e.menu_value.keys.collect(&:class).uniq != [Symbol]) or not (e.menu_value.values.collect(&:class).uniq - [String, TrueClass, FalseClass]).empty?
+        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) \
+                                                                                                      or e.locator_value.empty?
+        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (not e.menu_value.empty?) and \
+                                                                                                                                          ((e.menu_value.keys.collect(&:class).uniq != [Symbol]) \
+                                                                                                                                           or not (e.menu_value.values.collect(&:class).uniq - [String, TrueClass, FalseClass]).empty?)
         element_output.unshift "\telement(#{e.label_value.inspect}):\n" if not element_output.empty?
         output += element_output       
       }
@@ -288,7 +314,8 @@ class PageObject < DslElementWithLocator
       table_output = []
       table_output << "\ttable #{t.label_value.inspect} already defined\n" if labeled(@tables).count(t.label_value) > 1
       table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
-      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash or String\n" if (not t.locator_value.is_a?(Hash) and not t.locator_value.is_a?(String)) or t.locator_value.empty?
+      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash or String\n" if (not t.locator_value.is_a?(Hash) and \
+                                                                                                   not t.locator_value.is_a?(String)) or t.locator_value.empty?
       table_output << "\theader #{t.header_value.inspect} not a meaningful Array\n" if not t.header_value.is_a?(Array) or t.header_value.empty?
       table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
       output += table_output
@@ -361,7 +388,9 @@ private
           if watir_element.respond_to?(:set)
             watir_element.when_present.set food if food!=''
           else
-            raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, e) + ' check element type'
+            # this is an element which does not support input (e.g. button) => skipping it
+            next
+            #raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, e) + ' check element type'
           end
         end
     }
@@ -487,6 +516,12 @@ private
     self
   end
 
+  def press e
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+    watir_element = return_watir_element e
+    watir_element.when_present.send e.press_action_value if watir_element.respond_to? e.press_action_value
+    watir_element
+  end
 
   def labeled(ary)
     ary.collect(&:label_value)

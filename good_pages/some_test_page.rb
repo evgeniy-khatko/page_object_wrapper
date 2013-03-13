@@ -3,7 +3,31 @@ PageObjectWrapper.define_page(:some_test_page) do
   locator 'file://'+Dir.pwd+'/good_pages/some_test_page.html'
   uniq_h1 :text => 'Testing display of HTML elements'
 
+  text_field(:tf_standalone) do
+    locator :id => 'f1'
+    menu :loud, 'tf food'
+  end
+
+  button(:standalone_cool_button_with_default_press_action) do
+    locator :name => 'foo'
+    menu :loud, 'try to feed me!'
+  end
+
+  button(:standalone_cool_button) do
+    locator :name => 'foo'
+    press_action :click
+  end
+
+  link :standalone_main_page_link do
+    locator :text => 'main page'
+  end
+
   elements_set(:test_elements) do
+
+    link :main_page_link do
+      locator :text => 'main page'
+    end
+
     text_field(:tf) do
       locator :id => 'f1'
       menu :loud, 'tf food'

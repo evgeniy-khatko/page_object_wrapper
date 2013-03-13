@@ -8,7 +8,7 @@ KNOWN_ELEMENTS = [
   'cites', 'code', 'codes', 'col', 'colgroup', 'colgroups', 
   'cols', 'command', 'commands', 'datalist', 'datalists', 
   'dd', 'dds', 'del', 'dels', 'details', 'dfn', 'dfns', 'div', 
-  'divs', 'dl', 'dls', 'dt', 'dts', 'element', 'elements', 
+  'divs', 'dl', 'dls', 'dt', 'dts', 'element',
   'em', 'embed', 'embeds', 'ems', 'fieldset', 'fieldsets', 'figcaption', 
   'figcaptions', 'figure', 'figures', 'file_field', 'file_fields', 'font', 
   'fonts', 'footer', 'footers', 'form', 'forms', 'frame', 'frames', 
@@ -24,7 +24,7 @@ KNOWN_ELEMENTS = [
   'ps', 'q', 'qs', 'radio', 'radios', 'rp', 'rps', 'rt', 'rts', 'rubies', 'ruby', 's', 
   'samp', 'samps', 'script', 'scripts', 'section', 'sections', 'select', 'selects', 'small', 
   'smalls', 'source', 'sources', 'span', 'spans', 'ss', 'strong', 'strongs', 'style', 'styles', 
-  'sub', 'subs', 'summaries', 'summary', 'sup', 'sups', 'table', 'tables', 'tbody', 'tbodys', 'td', 
+  'sub', 'subs', 'summaries', 'summary', 'sup', 'sups', 'tbody', 'tbodys', 'td', 
   'tds', 'text_field', 'text_fields', 'textarea', 'textareas', 'tfoot', 'tfoots', 'th', 'thead', 
   'theads', 'ths', 'time', 'times', 'title', 'titles', 'tr', 'track', 'tracks', 'trs', 'ul', 
   'uls', 'var', 'vars', 'video', 'videos', 'wbr', 'wbrs'

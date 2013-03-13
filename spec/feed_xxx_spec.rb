@@ -24,12 +24,19 @@ describe "page_object.feed_xxx" do
     end
 
     it "returns current page object" do
+      @tp.feed_tf_standalone(:quite).should be_a PageObject
       @tp.feed_test_elements(:quite).should be_a PageObject
+      @tp.feed_all(:quite).should be_a PageObject
     end
 
-    context "menu not specified" do
-      it "does nothing" do
-        @tp.feed_test_elements
+    describe "feed_standalone_element" do 
+      it "does nothing if menu not spesified" do
+        @tp.feed_tf_standalone
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+      end
+
+      it "does nothing if element does not support :select or :set methods" do
+        @tp.feed_standalone_cool_button(:loud)
         @b.text_field(:id => 'f1').value.should eq 'Default text.'
         @b.textarea(:id => 'f2').value.should eq "Default text.\n"
         @b.radio(:id => 'f3').should_not be_set
@@ -39,9 +46,46 @@ describe "page_object.feed_xxx" do
         @b.select(:id => 'f10').value.should eq 'two (default)'
         @b.select(:id => 'f11').value.should eq 'two (default)'
       end
+
+      it "FEEDS elements which has provided menu" do
+        @tp.feed_tf_standalone(:loud)
+        @b.text_field(:id => 'f1').value.should eq 'tf food'
+      end    
+
+      it "feeds ONLY elements which has provided menu" do
+        @tp.feed_tf_standalone(:quite)
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'two (default)'
+      end    
+
+      it "overrides defined menu when passing arguments" do
+        @tp.feed_tf_standalone(:loud, :tf_standalone => 'cheef menu')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+      end
+
+      it "can be used without providing a menu" do
+        @tp.feed_tf_standalone(:tf_standalone => 'cheef menu')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+      end
     end
 
-    describe "basic usage" do 
+    describe "feed_elements_set" do 
+      it "does nothing if menu not spesified" do
+        @tp.feed_test_elements
+        @tp.feed_all
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f3').should_not be_set
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f5').should_not be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f10').value.should eq 'two (default)'
+        @b.select(:id => 'f11').value.should eq 'two (default)'
+      end
+
       it "FEEDS elements which has provided menu" do
         @tp.feed_test_elements(:loud)
         @b.text_field(:id => 'f1').value.should eq 'tf food'
@@ -73,6 +117,57 @@ describe "page_object.feed_xxx" do
 
       it "can be used without providing a menu" do
         @tp.feed_test_elements(:tf => 'cheef menu', :rb2 => true, :cb2 => true, :s2 => 'three')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'three'
+      end
+    end
+
+    describe "feed_all" do 
+      it "does nothing if menu not spesified" do
+        @tp.feed_all
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f3').should_not be_set
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f5').should_not be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f10').value.should eq 'two (default)'
+        @b.select(:id => 'f11').value.should eq 'two (default)'
+      end
+
+      it "FEEDS elements which has provided menu" do
+        @tp.feed_all(:loud)
+        @b.text_field(:id => 'f1').value.should eq 'tf food'
+        @b.textarea(:id => 'f2').value.should eq "ta food"
+        @b.radio(:id => 'f3').should be_set
+        @b.radio(:id => 'f4').should_not be_set
+        @b.checkbox(:id => 'f5').should be_set
+        @b.checkbox(:id => 'f6').should_not be_set
+        @b.select(:id => 'f10').value.should eq 'one'
+        @b.select(:id => 'f11').value.should eq 'one'
+      end    
+
+      it "feeds ONLY elements which has provided menu" do
+        @tp.feed_all(:quite)
+        @b.text_field(:id => 'f1').value.should eq 'Default text.'
+        @b.textarea(:id => 'f2').value.should eq "Default text.\n"
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'two (default)'
+      end    
+
+      it "overrides defined menu when passing arguments" do
+        @tp.feed_all(:loud, :tf => 'cheef menu', :rb1 => false, :rb2 => true, :cb2 => true, :s2 => 'three')
+        @b.text_field(:id => 'f1').value.should eq 'cheef menu'
+        @b.radio(:id => 'f4').should be_set
+        @b.checkbox(:id => 'f6').should be_set
+        @b.select(:id => 'f11').value.should eq 'three'
+      end
+
+      it "can be used without providing a menu" do
+        @tp.feed_all(:tf => 'cheef menu', :rb2 => true, :cb2 => true, :s2 => 'three')
         @b.text_field(:id => 'f1').value.should eq 'cheef menu'
         @b.radio(:id => 'f4').should be_set
         @b.checkbox(:id => 'f6').should be_set

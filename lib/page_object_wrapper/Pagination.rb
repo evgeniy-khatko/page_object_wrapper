@@ -5,6 +5,7 @@ class Pagination < DslElement
     super label
     @locator = nil
     @finds = nil
+    @menu = Hash.new
   end
 
   def locator hash, finds
@@ -19,5 +20,5 @@ class Pagination < DslElement
   def finds_value
     @finds
   end
-end
 
+end

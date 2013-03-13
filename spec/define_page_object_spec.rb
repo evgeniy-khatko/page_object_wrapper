@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'shared_examples'
+require 'known_elements'
 
 describe "define_page_object" do
   let!(:page_object){
@@ -25,6 +26,14 @@ describe "define_page_object" do
       its(:uniq_element_hash) { should == {:text => 'Testing display of HTML elements'} }
     end
 
+    describe "page_object element" do      
+      it "can contain known elements" do
+        KNOWN_ELEMENTS.each{ |known|
+          subject.should respond_to known
+        }
+      end
+    end
+
     specify { subject.esets.collect(&:label_value).should include(:test_elements)}
     it { should respond_to(:test_elements) }
     it { should respond_to(:feed_test_elements) }
@@ -47,8 +56,42 @@ describe "define_page_object" do
     specify { subject.paginations.collect(&:label_value).should include(:some_pagination)}
     it { should respond_to(:some_pagination_each) }
     it { should respond_to(:some_pagination_open) }
+
+    specify { subject.elements.collect(&:label_value).should include(:tf_standalone)}
+    it { should respond_to(:feed_tf_standalone) }
+    it { should respond_to(:press_tf_standalone) }
+
+    specify { subject.elements.collect(&:label_value).should include(:standalone_cool_button)}
+    it { should respond_to(:press_standalone_cool_button) }
+    it { should respond_to(:feed_standalone_cool_button) }
   end
 
+  context "element outside elements_set" do
+    subject { page_object.elements[page_object.elements.collect(&:label_value).index(:tf_standalone)] }
+    
+    it { should be_a(Element) }
+
+    describe "element label" do
+      it_should_behave_like "a label"
+    end
+    
+    describe "element locator" do
+      it_should_behave_like "a locator"
+      its(:locator_value) { should be_a Hash }
+    end
+
+    describe "element menu" do
+      it { should respond_to(:menu) }
+      it { should respond_to(:menu_value) }
+
+      its(:menu_value) { should be_a Hash}
+
+      describe "user defined menu" do
+        its(:menu_value){ should have_key :loud }
+        its(:menu_value){ should have_value 'tf food'}
+      end
+    end
+  end
 
   context "elements_set" do
     subject { page_object.esets[page_object.esets.collect(&:label_value).index(:test_elements)] }
@@ -60,7 +103,7 @@ describe "define_page_object" do
     end
   end
 
-  context "element" do
+  context "element inside elements_set" do
     subject { page_object.elements[page_object.elements.collect(&:label_value).index(:tf)] }
     
     it { should be_a(Element) }

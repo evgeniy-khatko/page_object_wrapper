@@ -12,6 +12,6 @@ class Table < DslElementWithLocator
     DEFAULT_HEADER_COLLUMNS_NUMBER.times { |i| h << (DEFAULT_HEADER_COLLUMNS_PREFIX+i.to_s).to_sym }
     @header = h
     @type = 'table'
+    @menu = Hash.new
   end
 end
-

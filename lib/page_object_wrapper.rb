@@ -32,6 +32,10 @@ module PageObjectWrapper
     PageObject.current_page
   end
 
+  def self.current_page? label
+    PageObject.current_page? label
+  end
+
   def self.load(path_to_pages='.')
     processed = 0
     Dir.glob("#{path_to_pages}/*_page.rb"){|fn|

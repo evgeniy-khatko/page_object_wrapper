@@ -6,6 +6,7 @@ class Element < DslElementWithLocator
     super label
     @type = type
     @menu = Hash.new
+    @press_action = :press
   end
 
   def menu food_type, value
@@ -14,5 +15,13 @@ class Element < DslElementWithLocator
 
   def menu_value
     @menu
+  end
+
+  def press_action action
+    @press_action = action
+  end
+
+  def press_action_value
+    @press_action
   end
 end
