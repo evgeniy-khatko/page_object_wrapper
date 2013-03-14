@@ -42,49 +42,87 @@ optional arguments are enclosed with [ ]
 
 ### Examples
 
-#### definition example
+#### definition examples
+##### define a page object with url and some elements
+    PageObjectWrapper.define_page :some_test_page do
+      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html' # url
+      
+      text_field(:tf) do # defines a text_field
+        locator :id => 'f1' # element locator (can be Hash or String)
+        menu :user_defined, 'some food' # input data with type :user_defined for this element
+      end
 
-    PageObjectWrapper.define_page(:some_test_page) do
-      #locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
-      locator 'file://'+Dir.pwd+'/good_pages/some_test_page.html'
-      uniq_h1 :text => 'Testing display of HTML elements'
+      select(:s1) do # select list
+        locator :id => 'f10'
+        menu :fresh_food, 'one'
+        menu :missing_food, 'three'
+      end
 
-      elements_set(:test_elements) do
+      table(:table_with_header) do # table with predifined header
+        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+        header [:country, :total_area, :land_area] # header will be used later inside #select_from_xxx calls
+      end
+    end
+
+##### elements can be included into element\_sets
+    PageObjectWrapper.define_page :some_test_page do
+      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
+
+      elements_set :test_elements do
         text_field(:tf) do
           locator :id => 'f1'
           menu :user_defined, 'some food'
         end
 
-        textarea(:ta) do
+        textarea :ta do
           locator :id => 'f2'
         end
         
-        select(:s1) do
+        select :s1 do
           locator :id => 'f10'
           menu :fresh_food, 'one'
           menu :missing_food, 'three'
         end
-
-        select(:s2) do
-          locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
-          menu :fresh_food, 'one'
-        end
-
-        checkbox(:cb){ locator :id => 'f5' }
-        radio(:rb){ locator :id => 'f3' }
       end
+    end
 
-      action(:press_cool_button, :test_page_with_table) do
+##### each element can be marked as required 
+    PageObjectWrapper.define_page :some_test_page do
+      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
+
+      text_field :tf do
+        locator :id => 'f1'
+        menu :user_defined, 'some food'
+        required true # will be checked for presence upon page load
+      end
+    end
+
+*if all pages are similar through out the web app, it's possible to additionaly set a number of uniq elements   
+which will be checked for presence as well*
+
+    PageObjectWrapper.define_page :some_test_page_similar_to_previous do
+      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
+
+      text_field :tf do
+        locator :id => 'f1'
+        menu :user_defined, 'some food'
+        required true # will be checked for presence upon page load
+      end
+    end
+
+##### it's possible to define action and its aliases inside pages
+*actions are being executed in browser context
+
+    PageObjectWrapper.define_page :some_test_page do
+      locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
+      uniq_h1 :text => 'Testing display of HTML elements'
+
+      action(:press_cool_button, :test_page_with_table) do # this action returns :test_page_with_table object after execution
         button(:name => 'foo').when_present.click
       end
 
-      action(:fill_textarea, :some_test_page) do |fill_with|
-        data = (fill_with.nil?)? 'Default data' : fill_with
-        textarea(:id => 'f2').set data
-      end
-
-      action :fill_textarea_with_returned_value do |fill_with|
-        data = (fill_with.nil?)? 'Default data' : fill_with
+      action :fill_textarea_with_returned_value do |fill_with|  # this action returns 'data' 
+        data = (fill_with.nil?)? 'Default data' : fill_with     # (because returned page object is not specified)
         textarea(:id => 'f2').set data
         data
       end 
@@ -95,20 +133,9 @@ optional arguments are enclosed with [ ]
       table(:table_without_header) do
         locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
       end
-
-      table(:table_with_header) do
-        locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
-        header [:country, :total_area, :land_area]
-      end
-
-      pagination(:some_pagination) do
-        locator :xpath => ''
-      end
-
-      validator(:textarea_value) do |expected|
-        textarea(:id => 'f2').value == expected
-      end
     end
+
+##### other definition examples can be found inside 'good\_pages', 'bad\_pages' folders
 
 here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
 - uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
@@ -167,7 +194,7 @@ Defined elements can be accessed with their labels.
 
 #### feed\_xxx 
 *parameters*  
-:fresh\_food, :missing\_food  
+menu type, specified inside page\_object (optional)
 *returns*  
 current\_page  
   
@@ -222,10 +249,6 @@ next\_page from xxx action
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
-    it "executes fire_block in Watir::Browser context":
-      tp = PageObjectWrapper.open_page(:some_test_page)
-      tp.fire_fill_textarea
-
     it "can be invoked with parameters":
       tp = PageObjectWrapper.current_page
       tp.fire_fill_textarea('User defined data')
@@ -235,13 +258,6 @@ next\_page from xxx action
         tp = PageObjectWrapper.current_page
         data = tp.fire_fill_textarea_with_returned_value('data to fill with')
         tp.validate_textarea_value(data).should be(true)
-
-    context "next_page not nil":
-      it "returns next_page":
-        tp = PageObjectWrapper.current_page
-        np = tp.fire_press_cool_button
-        np.should be_a(PageObject)
-        np.label_value.should eq(:test_page_with_table)
 
     context "xxx is alias":
       it "executes corresponding action":
@@ -253,18 +269,13 @@ next\_page from xxx action
 optional arguments defined inside action  
 *returns*  
 anything block inside xxx validator returns
-it's expected that validator returns true | false
   
 *preconditions*  
 **tp** is a :some\_test\_page object opened in the browser
 
       tp = PageObjectWrapper.open_page(:some_test_page)
-      tp.fire_fill_textarea
-      tp.validate_textarea_value('Default data').should be(true)
-
-      tp = PageObjectWrapper.current_page
-      tp.fire_fill_textarea('User defined data')
-      tp.validate_textarea_value('User defined data').should be(true)
+      tp.fire_fill_textarea data
+      tp.validate_textarea_value.should eq data
 
 #### select\_from\_xxx  
 *parameters*  
@@ -274,7 +285,7 @@ Watir::TableCell if next\_page not specified
 next\_page if it is specified  
   
 *preconditions*  
-**tp** is a :some\_test\_page object opened in the browser  
+**tp** is a :some\_test\_page object opened in the browser (url = (https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png))
 its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
       page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )    
 correct arguments are:  
@@ -343,6 +354,7 @@ correct arguments are:
           gp = PageObjectWrapper.open_page(:google_pagination)
           gp.pagination_open(n).should be_a PageObject
           gp.validate_current_number?(n).should be_true
+
 ## Contributing
 
 1. Fork it

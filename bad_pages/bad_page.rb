@@ -7,6 +7,10 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
   elements_set('some elements_set label') do
   end
 
+  text_field :bad_required_flad do
+    required 'a string'
+  end
+
   elements_set(:bad_elements) do
     element('') do
       menu :fresh_food, Array.new

@@ -22,8 +22,9 @@ describe "define_page_object" do
     end
 
     describe "page_object uniq_element" do
-      its(:uniq_element_type) { should eq :h1 }
-      its(:uniq_element_hash) { should == {:text => 'Testing display of HTML elements'} }
+      specify { subject.elements.collect(&:label_value).should include(:uniq_h1) }
+      let(:uniq_element){ subject.elements[subject.elements.collect(&:label_value).index(:uniq_h1)] }
+      specify { uniq_element.required_value.should be_true }
     end
 
     describe "page_object element" do      

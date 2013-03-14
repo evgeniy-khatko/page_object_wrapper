@@ -18,14 +18,19 @@ PageObjectWrapper.define_page(:some_test_page) do
     press_action :click
   end
 
-  link :standalone_main_page_link do
-    locator :text => 'main page'
+  button(:invalid_press_action_button) do
+    locator :name => 'foo'
+    press_action :press
+  end
+
+  button(:invalid_button) do
+    locator :name => 'bar'
   end
 
   elements_set(:test_elements) do
 
-    link :main_page_link do
-      locator :text => 'main page'
+    button(:cool_button) do
+      locator :name => 'foo'
     end
 
     text_field(:tf) do

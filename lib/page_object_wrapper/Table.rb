@@ -1,5 +1,5 @@
 require 'Dsl'
-class Table < DslElementWithLocator
+class Table < Element
   attr_reader :type
   dsl_attr_accessor :header
   DEFAULT_HEADER_COLLUMNS_NUMBER = 100 
@@ -7,11 +7,9 @@ class Table < DslElementWithLocator
   
 
   def initialize(label)
-    super label
+    super label, 'table'
     h = []
     DEFAULT_HEADER_COLLUMNS_NUMBER.times { |i| h << (DEFAULT_HEADER_COLLUMNS_PREFIX+i.to_s).to_sym }
     @header = h
-    @type = 'table'
-    @menu = Hash.new
   end
 end

@@ -19,7 +19,7 @@ class PageObject < DslElementWithLocator
   @@pages = []
   @@current_page = nil
 
-  UNIQ_ELEMENT_WAIT_PERIOD = 10
+  REQUIRED_ELEMENT_WAIT_PERIOD = 10
   FEED_ALL = Regexp.new(/^feed_all$/)
   FEED = Regexp.new(/^feed_([\w_]+)$/)
   FIRE_ACTION = Regexp.new(/^fire_([\w_]+)$/)
@@ -31,8 +31,6 @@ class PageObject < DslElementWithLocator
     
   def initialize(label)
     super label
-    @uniq_element_type = nil
-    @uniq_element_hash = {}
     @esets = []
     @elements = []
     @actions = []
@@ -55,16 +53,18 @@ class PageObject < DslElementWithLocator
     case 
       when KNOWN_ELEMENTS.include?(method_name.to_s.gsub(/^uniq_/,''))
         # page_object.uniq_xxx(hash)
-        @uniq_element_type = method_name.to_s.gsub(/^uniq_/,'').to_sym
-        @uniq_element_hash = args[0]
+        meth = method_name.to_s.gsub(/^uniq_/,'')
+        e = Element.new(method_name.to_sym, meth)
+        e.instance_eval { locator(args[0]); required(true) }
+        @elements << e
       when has_eset?(method_name)
         # page_object.some_elements_set
         eset = eset_for(method_name)
-        return_array_of_watir_elements(eset)
+        PageObject.return_array_of_watir_elements(eset)
       when has_element?(method_name)
         # page_object.some_element
         element = element_for(method_name)
-        return_watir_element(element)
+        PageObject.return_watir_element element
       when FEED_ALL.match(method_name)
         # page_object.feed_all(:fresh_food)
         feed_elements(@elements, *args)
@@ -179,15 +179,20 @@ class PageObject < DslElementWithLocator
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
     raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
-    if not page_object.uniq_element_type.nil?
+    page_object.elements.select{ |e| e.required_value == true }.each{ |required_element|
       begin
-        watir_uniq_element = @@browser.send page_object.uniq_element_type, page_object.uniq_element_hash
-        watir_uniq_element.wait_until_present UNIQ_ELEMENT_WAIT_PERIOD
+        watir_element = return_watir_element required_element
+        watir_element.wait_until_present REQUIRED_ELEMENT_WAIT_PERIOD
       rescue Watir::Wait::TimeoutError => e
-        raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url} (#{e.message})" if not watir_uniq_element.present?
+        raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url} (#{e.message})" if not watir_element.present?
       end
-    end
+    }
     @@current_page = page_object
+  end
+
+  def self.current_page? label
+    self.map_current_page label
+    true
   end
 
   def self.current_page
@@ -242,6 +247,7 @@ class PageObject < DslElementWithLocator
     t = Table.new(label)
     t.instance_eval(&block)
     @tables << t
+    @elements << t
     t
   end
 
@@ -265,18 +271,19 @@ class PageObject < DslElementWithLocator
       eset_output << "\tlabel #{eset.label_value.inspect} not a Symbol\n" if not eset.label_value.is_a?(Symbol)
       eset_output.unshift "elements_set(#{eset.label_value.inspect}):\n" if not eset_output.empty?
       output += eset_output
-      eset.elements.each{|e|
-        element_output = []
-        element_output << "\t\telement #{e.label_value.inspect} already defined\n" if labeled(eset.elements).count(e.label_value) > 1
-        element_output << "\t\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
-        element_output << "\t\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) \
-                                                                                                      or e.locator_value.empty?
-        element_output << "\t\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (not e.menu_value.empty?) and \
-                                                                                                                                          ((e.menu_value.keys.collect(&:class).uniq != [Symbol]) \
-                                                                                                                                           or not (e.menu_value.values.collect(&:class).uniq - [String, TrueClass, FalseClass]).empty?)
-        element_output.unshift "\telement(#{e.label_value.inspect}):\n" if not element_output.empty?
-        output += element_output       
-      }
+    }
+    @elements.each{|e|
+      element_output = []
+      element_output << "\telement #{e.label_value.inspect} already defined\n" if labeled(@elements).count(e.label_value) > 1
+      element_output << "\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
+      element_output << "\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) \
+                                                                                                    or e.locator_value.empty?
+      element_output << "\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (not e.menu_value.empty?) and \
+                                                                                                                                        ((e.menu_value.keys.collect(&:class).uniq != [Symbol]) \
+                                                                                                                                         or not (e.menu_value.values.collect(&:class).uniq - [String, TrueClass, FalseClass]).empty?)
+      element_output << "\trequired flag #{e.required_value.inspect} not a true | false\n" if not [true, false].include? e.required_value
+      element_output.unshift "element(#{e.label_value.inspect}):\n" if not element_output.empty?
+      output += element_output       
     }
     @actions.each{|a|
       action_output = []
@@ -312,10 +319,6 @@ class PageObject < DslElementWithLocator
     }
     @tables.each{|t|
       table_output = []
-      table_output << "\ttable #{t.label_value.inspect} already defined\n" if labeled(@tables).count(t.label_value) > 1
-      table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
-      table_output << "\tlocator #{t.locator_value.inspect} not a meaningful Hash or String\n" if (not t.locator_value.is_a?(Hash) and \
-                                                                                                   not t.locator_value.is_a?(String)) or t.locator_value.empty?
       table_output << "\theader #{t.header_value.inspect} not a meaningful Array\n" if not t.header_value.is_a?(Array) or t.header_value.empty?
       table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
       output += table_output
@@ -341,7 +344,7 @@ private
     p
   end
   
-  def return_watir_element(e)
+  def self.return_watir_element(e)
     el = nil
     if e.locator_value.is_a? Hash
       el = @@browser.send e.type, e.locator_value
@@ -351,7 +354,7 @@ private
     el
   end
 
-  def return_array_of_watir_elements(eset)
+  def self.return_array_of_watir_elements(eset)
     eset.elements.collect{|e| return_watir_element(e)}
   end
 
@@ -376,7 +379,7 @@ private
       else
         food = e.menu_value[menu_name].to_s
       end
-      watir_element = return_watir_element(e)
+      watir_element = PageObject.return_watir_element e
       case watir_element
         when Watir::CheckBox
           watir_element.when_present.set eval(food) if ["true", "false"].include? food
@@ -518,8 +521,12 @@ private
 
   def press e
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-    watir_element = return_watir_element e
-    watir_element.when_present.send e.press_action_value if watir_element.respond_to? e.press_action_value
+    watir_element = PageObject.return_watir_element e
+    raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} not found in #{@@current_page}"\
+      if not watir_element.present?
+    raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} does not respond to #{e.press_action_value}"\
+      if not watir_element.respond_to? e.press_action_value
+    watir_element.when_present.send e.press_action_value 
     watir_element
   end
 

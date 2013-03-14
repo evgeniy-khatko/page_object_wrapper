@@ -8,4 +8,5 @@ module PageObjectWrapper
   class DynamicUrl < StandardError; end
   class InvalidPagination < StandardError; end
   class OutOfBoundsSubpage < StandardError; end
+  class InvalidElement < StandardError; end
 end
