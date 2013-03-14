@@ -103,6 +103,8 @@ which will be checked for presence as well*
     PageObjectWrapper.define_page :some_test_page_similar_to_previous do
       locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
 
+      uniq_h1 :text => 'Testing display of HTML elements'
+
       text_field :tf do
         locator :id => 'f1'
         menu :user_defined, 'some food'
@@ -111,7 +113,7 @@ which will be checked for presence as well*
     end
 
 ##### it's possible to define action and its aliases inside pages
-*actions are being executed in browser context
+*actions are being executed in browser context*
 
     PageObjectWrapper.define_page :some_test_page do
       locator 'http://www.cs.tut.fi/~jkorpela/www/testel.html'
@@ -135,16 +137,9 @@ which will be checked for presence as well*
       end
     end
 
-##### other definition examples can be found inside 'good\_pages', 'bad\_pages' folders
+### other definition examples can be found inside 'good\_pages', 'bad\_pages' folders
 
-here we have defined a page object with locator (url) = 'http://www.cs.tut.fi/~jkorpela/www/testel.html'  
-- uniq\_xxx is used to define a uniq element on that page, which uniquely identifies the page from other pages  
-- uniq\_xxx is being checked when openning the page with PageObjectWrapper.open\_page and when running an page\_object.action  
-- all defined elements have labels
-- action and action\_alias defined with labels and next\_pages
-- validator defined with label
-
-#### openning the page
+#### PageObjectWrapper.open\_page - opens page with spesified label
 *preconditions*  
 There is a directory, where we've defined a page\_object inside a \*\_page.rb file
 
@@ -172,7 +167,7 @@ There is a directory, where we've defined a page\_object inside a \*\_page.rb fi
         PageObjectWrapper.define_page(:google){ locator 'www.google.com/:some_param' }  
         PageObjectWrapper.open_page(:google, :some_param => 'advanced_search') # => 'http://google.com/advanced_search'  
 
-#### page\_object.xxx 
+#### page\_object.xxx - returns corresponding Watir element defined inside page\_object
 *parameters*  
 no  
 *returns*  
@@ -192,7 +187,7 @@ Defined elements can be accessed with their labels.
 
 
 
-#### feed\_xxx 
+#### feed\_xxx - inserts data inside an element, an elements\_set or all elements of the page
 *parameters*  
 menu type, specified inside page\_object (optional)
 *returns*  
@@ -228,7 +223,7 @@ current\_page
           browser.text_field(:id => 'f1').value.should eq 'cheef menu'
           ....
 
-#### xxx\_menu  
+#### xxx\_menu - returns corresponding data, defined inside xxx element
 *parameters*  
 :food\_type  
 *returns*  
@@ -240,7 +235,7 @@ food value for this type which is defined in page\_object
     tp.tf_menu(:loud) # => 'tf food' 
     tp.rb1_menu(:loud) # => 'true' # pay attention that String is being returned (not true, TrueClass)
 
-#### fire\_xxx 
+#### fire\_xxx - executes action with label xxx
 *parameters*  
 optional arguments defined inside action  
 *returns*  
@@ -264,7 +259,7 @@ next\_page from xxx action
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
 
-#### validate\_xxx 
+#### validate\_xxx - executes validator with label xxx
 *parameters*  
 optional arguments defined inside action  
 *returns*  
@@ -277,7 +272,7 @@ anything block inside xxx validator returns
       tp.fire_fill_textarea data
       tp.validate_textarea_value.should eq data
 
-#### select\_from\_xxx  
+#### select\_from\_xxx - tries to select data from table with label xxx
 *parameters*  
 :column\_1, :column\_2 => search\_value, :optional\_next\_page  
 *returns*  
@@ -334,7 +329,7 @@ correct arguments are:
           it "returns nil":
             tp.select_from_table_with_header(:country, {:row => 123}, :some_test_page).should eq nil
 
-#### each\_xxx
+#### each\_xxx - alternately opens each pagination subpage
       context "correct parameters ( limit = 3 )":
         it "opens browser on subeach page and yields corresponding page_object":
           gp = PageObjectWrapper.open_page(:google_pagination)
@@ -344,7 +339,7 @@ correct arguments are:
             subpage.should be_a PageObject 
             subpage.validate_current_number?(counter).should be_true
           }
-#### open\_xxx
+#### open\_xxx - opens pagination subpage number N
       context "correct parameters":
         it "opens browser on provided subpage returns corresponding page_object":
           n = 10
