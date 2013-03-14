@@ -283,9 +283,9 @@ next\_page if it is specified
 **tp** is a :some\_test\_page object opened in the browser (url = https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png)   
 *Method's syntax is close to SQL:*  
       page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )    
-correct arguments are:  
-:column1 is a column value from which you want to receive   
-:column2 is a column which is used to get specific row   
+*correct arguments are:*  
+:column1 *is a column value from which you want to receive   
+:column2 *is a column which is used to get specific row   
 
     context "where == nil":
       it "returns last row value from provided column":
