@@ -139,7 +139,7 @@ which will be checked for presence as well*
 
 ### other definition examples can be found inside 'good\_pages', 'bad\_pages' folders
 
-#### PageObjectWrapper.open\_page - opens page with spesified label
+#### PageObjectWrapper.open\_page - opens page with specified label
 *preconditions*  
 There is a directory, where we've defined a page\_object inside a \*\_page.rb file
 
@@ -280,8 +280,8 @@ Watir::TableCell if next\_page not specified
 next\_page if it is specified  
   
 *preconditions*  
-**tp** is a :some\_test\_page object opened in the browser (url = (https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png))
-its syntax is close to SQL *'select column1 from page\_object.some\_table where column2 = string\_or\_regexp'*     
+**tp** is a :some\_test\_page object opened in the browser (url = https://raw.github.com/evgeniy-khatko/page_object_wrapper/master/img/scheme.png)   
+*Method's syntax is close to SQL:*  
       page\_object.select\_from\_xxx( :column1, :column2 => 'string\_or\_regexp' )    
 correct arguments are:  
 :column1 is a column value from which you want to receive   
