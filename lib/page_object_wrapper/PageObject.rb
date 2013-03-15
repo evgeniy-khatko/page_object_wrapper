@@ -75,7 +75,11 @@ class PageObject < DslElementWithLocator
       when (FEED.match(method_name) and has_element?($1))
         # page_object.feed_some_element(:fresh_food)
         e = element_for($1)
-        feed_elements([e], *args)
+        if [true, false].include? args[0] or args[0].is_a? String 
+          feed_field(e, args[0])
+        else
+          feed_elements([e], *args)
+        end
       when (FIRE_ACTION.match(method_name) and has_action?($1))
         # page_object.fire_some_action
         a = action_for($1)
@@ -359,6 +363,7 @@ private
   end
 
   def feed_elements(elements, *args)
+    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     menu_name, cheef_menu = nil, nil
     
     if args[0].is_a? Symbol
@@ -367,7 +372,6 @@ private
     elsif args[0].is_a? Hash
       cheef_menu = args[0]
     end
-    raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
     if not cheef_menu.nil?
       raise ArgumentError, "#{cheef_menu.inspect} not meaningful Hash" if not cheef_menu.is_a? Hash or cheef_menu.empty?
     end
@@ -399,6 +403,23 @@ private
     }
     self
   end
+
+  def feed_field(e, value)
+    watir_element = PageObject.return_watir_element e
+    case watir_element
+    when Watir::CheckBox
+        watir_element.when_present.set value if [true, false].include? value
+    when Watir::Radio
+        watir_element.when_present.set if value==true          
+    when Watir::Select
+        watir_element.select value if watir_element.include? value
+    else
+      if watir_element.respond_to?(:set)
+        watir_element.when_present.set value 
+      end
+    end
+  end
+
 
   def fire_action(a, *args)
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?

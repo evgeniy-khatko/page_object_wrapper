@@ -52,6 +52,28 @@ describe "page_object.feed_xxx" do
         @b.text_field(:id => 'f1').value.should eq 'tf food'
       end    
 
+      it "FEEDS text_field with String value" do
+        @tp.feed_tf_standalone("whible")
+        @b.text_field(:id => 'f1').value.should eq 'whible'
+      end    
+
+      it "FEEDS checkbox with true value" do
+        @tp.feed_cb1(true)
+        @b.checkbox(:id => 'f5').should be_set
+      end    
+
+      it "FEEDS radio with true" do
+        @tp.feed_rb1(true)
+        @b.radio(:id => 'f3').should be_set
+      end    
+
+      it "FEEDS select list if provided value exists in it" do
+        @tp.feed_s1("whible")
+        @b.select(:id => 'f10').value.should eq "two (default)"
+        @tp.feed_s1("one")
+        @b.select(:id => 'f10').value.should eq "one"
+      end    
+
       it "feeds ONLY elements which has provided menu" do
         @tp.feed_tf_standalone(:quite)
         @b.text_field(:id => 'f1').value.should eq 'Default text.'
