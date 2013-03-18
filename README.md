@@ -259,6 +259,21 @@ next\_page from xxx action
         tp = PageObjectWrapper.open_page(:some_test_page)
         tp.fire_fill_textarea_alias
 
+#### press\_xxx - presses element with label xxx
+*parameters*  
+no
+*returns*  
+pressed watir element
+*preconditions*  
+**tp** is a :some\_test\_page object opened in the browser
+
+      it "returns pressed watir element"
+        tp.press_cool_button.should be_a Watir::Button
+
+      it "really presses the element"
+        tp.press_standalone_cool_button_with_default_press_action
+        PageObjectWrapper.current_page?(:test_page_with_table).should be_true
+
 #### validate\_xxx - executes validator with label xxx
 *parameters*  
 optional arguments defined inside action  
