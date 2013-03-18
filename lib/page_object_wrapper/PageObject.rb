@@ -95,7 +95,7 @@ class PageObject < DslElementWithLocator
       when (SELECT_FROM.match(method_name) and has_table?($1))
         # page_object.select_from_some_table(:header_column, {:column => 'value'})
         table = table_for($1)
-        select_from_table(table, *args)
+        select_from(table, *args)
       when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
         # page_object.each_pagination
         pagination = pagination_for($1)
@@ -163,7 +163,7 @@ class PageObject < DslElementWithLocator
 
   def self.open_page label, optional_hash=nil
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
-    raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
+    raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     url = ''
     url += @@domain if page_object.locator_value[0]=='/'
@@ -181,7 +181,7 @@ class PageObject < DslElementWithLocator
 
   def self.map_current_page label
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
-    raise PageObjectWrapper::UnknownPageObject, label if not @@pages.collect(&:label_value).include?(label)
+    raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
     page_object = PageObject.find_page_object(label)
     page_object.elements.select{ |e| e.required_value == true }.each{ |required_element|
       begin
@@ -438,7 +438,7 @@ private
     @@browser.instance_exec *args, &v.validate_block_value
   end
 
-  def select_from_table(table, header, *args)
+  def select_from(table, header, *args)
     where = args[0]
     next_page = args[1]
     raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
