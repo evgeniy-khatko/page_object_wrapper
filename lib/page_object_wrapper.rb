@@ -38,11 +38,11 @@ module PageObjectWrapper
 
   def self.load(path_to_pages='.')
     processed = 0
-    Dir.glob("#{path_to_pages}/*_page.rb"){|fn|
+    Dir.glob("#{path_to_pages}/*.rb"){|fn|
       processed +=1
       require fn
     }
-    raise PageObjectWrapper::Load, "No *_page.rb files found in #{path_to_pages}" if processed.zero?
+    raise PageObjectWrapper::Load, "No *.rb files found in #{path_to_pages}" if processed.zero?
     output = []
     PageObject.pages.each{|p|
       output += p.validate
