@@ -108,6 +108,10 @@ PageObjectWrapper.define_page(:some_test_page) do
     textarea(:id => 'f2').value == expected
   end
 
+  validator :tekst_pervoi_ssylki do
+    text = textarea(:id => 'f2').when_present.value
+	end
+
   pagination :some_pagination do
     locator "link(:text => 2)", 2
   end

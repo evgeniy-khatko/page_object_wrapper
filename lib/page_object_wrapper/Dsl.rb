@@ -9,27 +9,29 @@ class Class
     end
   end
 end
-class DslElement
-  dsl_attr_accessor :label
+module PageObjectWrapper
+  class DslElement
+    dsl_attr_accessor :label
 
-  def initialize label
-    @label = label
+    def initialize label
+      @label = label
+    end
+  protected
+    def to_tree(*args)
+      args.collect(&:label_value).join(" -> ")
+    end
+
+    def validate_label
+
+    end
   end
-protected
-  def to_tree(*args)
-    args.collect(&:label_value).join(" -> ")
-  end
 
-  def validate_label
+  class DslElementWithLocator < DslElement
+    dsl_attr_accessor :locator
 
-  end
-end
-
-class DslElementWithLocator < DslElement
-  dsl_attr_accessor :locator
-
-  def initialize label
-    super label
-    @locator = nil
+    def initialize label
+      super label
+      @locator = nil
+    end
   end
 end
