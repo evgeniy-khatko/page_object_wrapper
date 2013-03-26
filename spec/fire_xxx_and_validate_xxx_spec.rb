@@ -46,7 +46,7 @@ describe "page_object.fire_xxx" do
       it "returns next_page" do
         tp = PageObjectWrapper.current_page
         np = tp.fire_press_cool_button
-        np.should be_a(PageObject)
+        np.should be_a(PageObjectWrapper::PageObject)
         np.label_value.should eq(:test_page_with_table)
       end
     end

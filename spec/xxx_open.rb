@@ -33,10 +33,10 @@ describe 'page_object.open_xxx' do
       it "opens browser on provided subpage returns corresponding page_object" do
         n = 10
         yp = PageObjectWrapper.open_page(:yandex_pagination)
-        yp.pagination_open(n).should be_a PageObject
+        yp.pagination_open(n).should be_a PageObjectWrapper::PageObject
         yp.validate_current_number?(n).should be_true
         gp = PageObjectWrapper.open_page(:google_pagination)
-        gp.pagination_open(n).should be_a PageObject
+        gp.pagination_open(n).should be_a PageObjectWrapper::PageObject
         gp.validate_current_number?(n).should be_true
       end
     end

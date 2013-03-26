@@ -9,7 +9,7 @@ describe "define_page_object" do
 
   context "page_object" do
     subject { page_object }
-    it { should be_a(PageObject)}
+    it { should be_a(PageObjectWrapper::PageObject)}
     specify {page_object.class.pages.should include(subject)}
 
     describe "page_object label" do
@@ -29,7 +29,7 @@ describe "define_page_object" do
 
     describe "page_object element" do      
       it "can contain known elements" do
-        KNOWN_ELEMENTS.each{ |known|
+        PageObjectWrapper::KNOWN_ELEMENTS.each{ |known|
           subject.should respond_to known
         }
       end
@@ -70,7 +70,7 @@ describe "define_page_object" do
   context "element outside elements_set" do
     subject { page_object.elements[page_object.elements.collect(&:label_value).index(:tf_standalone)] }
     
-    it { should be_a(Element) }
+    it { should be_a(PageObjectWrapper::Element) }
 
     describe "element label" do
       it_should_behave_like "a label"
@@ -97,7 +97,7 @@ describe "define_page_object" do
   context "elements_set" do
     subject { page_object.esets[page_object.esets.collect(&:label_value).index(:test_elements)] }
     
-    it { should be_a(ElementsSet) }
+    it { should be_a(PageObjectWrapper::ElementsSet) }
 
     describe "elements_set label" do
       it_should_behave_like "a label"
@@ -107,7 +107,7 @@ describe "define_page_object" do
   context "element inside elements_set" do
     subject { page_object.elements[page_object.elements.collect(&:label_value).index(:tf)] }
     
-    it { should be_a(Element) }
+    it { should be_a(PageObjectWrapper::Element) }
 
     describe "element label" do
       it_should_behave_like "a label"
@@ -134,7 +134,7 @@ describe "define_page_object" do
   context "action" do
     subject { page_object.actions[page_object.actions.collect(&:label_value).index(:press_cool_button)] }
 
-    it { should be_a(Action) }
+    it { should be_a(PageObjectWrapper::Action) }
 
     describe "action label" do
       it_should_behave_like "a label"
@@ -152,7 +152,7 @@ describe "define_page_object" do
   context "action alias" do
     subject { page_object.aliases[page_object.aliases.collect(&:label_value).index(:fill_textarea_alias)] }
 
-    it { should be_a(Alias) }
+    it { should be_a(PageObjectWrapper::Alias) }
 
     describe "alias label" do
       it_should_behave_like "a label"
@@ -170,7 +170,7 @@ describe "define_page_object" do
   context "validator" do
     subject { page_object.validators[page_object.validators.collect(&:label_value).index(:textarea_value)] }
 
-    it { should be_a(Validator) }
+    it { should be_a(PageObjectWrapper::Validator) }
 
     describe "validator label" do
       it_should_behave_like "a label"
@@ -185,7 +185,7 @@ describe "define_page_object" do
   context "table" do
     subject { page_object.tables[page_object.tables.collect(&:label_value).index(:table_without_header)] }
 
-    it { should be_a(Table) }
+    it { should be_a(PageObjectWrapper::Table) }
 
     describe "table label" do
       it_should_behave_like "a label"
@@ -220,7 +220,7 @@ describe "define_page_object" do
   describe "pagination" do
     subject { page_object.paginations[page_object.paginations.collect(&:label_value).index(:some_pagination)] }
 
-    it { should be_a(Pagination) }
+    it { should be_a(PageObjectWrapper::Pagination) }
 
     describe "pagination label" do
       it_should_behave_like "a label"

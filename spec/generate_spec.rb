@@ -4,7 +4,7 @@ describe "PageObjectWrapper.generate" do
   it "accepts two arguments - a path_to_an_html file and an optional array which defines what types of elements to generate" do
   end
 
-  describe "generation of a PageObject definition" do
+  describe "generation of a PageObjectWrapper::PageObject definition" do
     it "generates element_sets for the forms on the page" do
     end
 

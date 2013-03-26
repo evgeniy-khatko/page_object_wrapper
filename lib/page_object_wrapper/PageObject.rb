@@ -1,17 +1,16 @@
 require 'active_support/inflector'
-require 'Dsl'
-require 'Exceptions'
-include PageObjectWrapper
-
-require 'ElementsSet'
-require 'Element'
-require 'Action'
-require 'Alias'
-require 'Validator'
-require 'Table'
-require 'Pagination'
-require 'Element'
-require 'known_elements'
+pwd = File.dirname(__FILE__)
+require pwd + '/Action'
+require pwd + '/Dsl'
+require pwd + '/Exceptions'
+require pwd + '/ElementsSet'
+require pwd + '/Element'
+require pwd + '/Alias'
+require pwd + '/Validator'
+require pwd + '/Table'
+require pwd + '/Pagination'
+require pwd + '/Element'
+require pwd + '/known_elements'
 
 module PageObjectWrapper
   class PageObject < DslElementWithLocator
@@ -167,7 +166,7 @@ module PageObjectWrapper
       raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
       page_object = PageObject.find_page_object(label)
       url = ''
-      url += @@domain if page_object.locator_value[0]=='/'
+      url += PageObjectWrapper.domain if page_object.locator_value[0]=='/'
       url += page_object.locator_value
       if not (optional_hash.nil? or optional_hash.empty?)
         optional_hash.each{|k,v|

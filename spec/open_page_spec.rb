@@ -22,9 +22,9 @@ describe "PageObjectWrapper.open_page" do
     end
 
     context "no optional arguments" do
-      it "returns opened PageObject instance" do
+      it "returns opened PageObjectWrapper::PageObject instance" do
         p = PageObjectWrapper.open_page(:google_page)
-        p.should be_an_instance_of(PageObject)
+        p.should be_an_instance_of(PageObjectWrapper::PageObject)
         p.label_value.should eq(:google_page)
       end
     end
@@ -50,14 +50,14 @@ describe "PageObjectWrapper.open_page" do
           begin
             PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com')
           rescue PageObjectWrapper::UnmappedPageObject
-            PageObject.browser.url.should =~ /google.\w+\/:path/
+            PageObjectWrapper::PageObject.browser.url.should =~ /google.\w+\/:path/
           end
         end
       end
       context "all dynamic parameters specified" do
         it "opens page with all parameters replaced with specified" do
           PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com', :path => 'advanced_search')
-          PageObject.browser.url.should =~ /google.\w+\/advanced_search/
+          PageObjectWrapper::PageObject.browser.url.should =~ /google.\w+\/advanced_search/
         end
       end
     end

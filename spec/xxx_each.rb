@@ -35,14 +35,14 @@ describe 'page_object.each_xxx' do
         counter = 0
         gp.pagination_each( :limit => 3 ){ |subpage| 
           counter += 1
-          subpage.should be_a PageObject 
+          subpage.should be_a PageObjectWrapper::PageObject 
           subpage.validate_current_number?(counter).should be_true
         }
         yp = PageObjectWrapper.open_page(:yandex_pagination)
         counter = 0
         yp.pagination_each( :limit => 3 ){ |subpage| 
           counter += 1
-          subpage.should be_a PageObject 
+          subpage.should be_a PageObjectWrapper::PageObject 
           subpage.validate_current_number?(counter).should be_true
         }
       end
