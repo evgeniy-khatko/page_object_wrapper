@@ -1,4 +1,5 @@
-require 'Dsl'
+pwd = File.dirname(__FILE__) + '/'
+require pwd + 'Dsl'
 module PageObjectWrapper
   class Alias < DslElement
     attr_reader :next_page_value

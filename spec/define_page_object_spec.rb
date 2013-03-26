@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared_examples'
-require 'known_elements'
+require File.dirname(__FILE__)+'/../lib/page_object_wrapper/known_elements'
 
 describe "define_page_object" do
   let!(:page_object){

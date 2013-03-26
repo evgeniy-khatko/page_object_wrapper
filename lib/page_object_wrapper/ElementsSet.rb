@@ -1,5 +1,6 @@
-require 'Dsl'
-require 'known_elements'
+pwd = File.dirname(__FILE__) + '/'
+require pwd + 'Dsl'
+require pwd + 'known_elements'
 module PageObjectWrapper
   class ElementsSet < DslElement
 
