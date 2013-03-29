@@ -511,6 +511,7 @@ module PageObjectWrapper
       limit = opts[:limit] if not opts.nil?
       raise PageObjectWrapper::InvalidPagination, opts.inspect if limit < 0 if not limit.nil?
 
+      @@browser.instance_eval "(#{p.locator_value}).wait_until_present)"
       current_link = @@browser.instance_eval p.locator_value
       raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not current_link.present?
       current_page_number = p.finds_value.to_i
@@ -524,6 +525,7 @@ module PageObjectWrapper
         block.call self
         current_page_number += 1
         current_link_locator = p.locator_value.gsub( p.finds_value.to_s, current_page_number.to_s )
+        @@browser.instance_eval "#{current_link_locator}.wait_until_present"
         current_link = @@browser.instance_eval current_link_locator
         counter += 1
       end
@@ -531,11 +533,13 @@ module PageObjectWrapper
 
     def open_subpage p, n, *args
       raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      @@browser.instance_eval "(#{p.locator_value.to_s}).wait_until_present"
       pagination_link = @@browser.instance_eval p.locator_value
       raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not pagination_link.present?
       n_th_link_locator = p.locator_value.gsub( p.finds_value.to_s, n.to_s )
+      @@browser.instance_eval "(#{n_th_link_locator}).wait_until_present"
       n_th_link = @@browser.instance_eval n_th_link_locator
-      n_th_link.when_present.click
+      n_th_link.click
       self.class.map_current_page self.label_value
       self
     end
