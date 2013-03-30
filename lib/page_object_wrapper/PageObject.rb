@@ -511,7 +511,7 @@ module PageObjectWrapper
       limit = opts[:limit] if not opts.nil?
       raise PageObjectWrapper::InvalidPagination, opts.inspect if limit < 0 if not limit.nil?
 
-      @@browser.instance_eval "(#{p.locator_value}).wait_until_present)"
+      @@browser.instance_eval "(#{p.locator_value}).wait_until_present"
       current_link = @@browser.instance_eval p.locator_value
       raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not current_link.present?
       current_page_number = p.finds_value.to_i
