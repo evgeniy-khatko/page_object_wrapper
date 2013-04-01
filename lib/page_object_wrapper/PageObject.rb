@@ -525,7 +525,6 @@ module PageObjectWrapper
         block.call self
         current_page_number += 1
         current_link_locator = p.locator_value.gsub( p.finds_value.to_s, current_page_number.to_s )
-        @@browser.instance_eval "#{current_link_locator}.wait_until_present"
         current_link = @@browser.instance_eval current_link_locator
         counter += 1
       end
