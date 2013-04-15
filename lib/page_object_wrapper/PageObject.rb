@@ -24,6 +24,7 @@ module PageObjectWrapper
     FEED = Regexp.new(/^feed_([\w_]+)$/)
     FIRE_ACTION = Regexp.new(/^fire_([\w_]+)$/)
     SELECT_FROM = Regexp.new(/^select_from_([\w_]+)$/)
+    SELECT_ROW_FROM = Regexp.new(/^select_row_from_([\w_]+)$/)
     PAGINATION_EACH = Regexp.new(/^([\w_]+)_each$/)
     PAGINATION_OPEN = Regexp.new(/^([\w_]+)_open$/)
     VALIDATE = Regexp.new(/^validate_([\w_\?]+)$/)
@@ -96,6 +97,10 @@ module PageObjectWrapper
           # page_object.select_from_some_table(:header_column, {:column => 'value'})
           table = table_for($1)
           select_from(table, *args)
+        when (SELECT_ROW_FROM.match(method_name) and has_table?($1))
+          # page_object.select_row_from_some_table(:number => 1, :column1 => value1, :column2 => value3, ...)
+          table = table_for($1)
+          select_row_from(table, args[0])
         when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
           # page_object.each_pagination
           pagination = pagination_for($1)
@@ -145,6 +150,9 @@ module PageObjectWrapper
           # page_object.validate_xxx
           true
         when (SELECT_FROM.match(method_name) and has_table?($1))
+          # page_object.select_from_some_table(:header_column, {:column => 'value'})
+          true
+        when (SELECT_ROW_FROM.match(method_name) and has_table?($1))
           # page_object.select_from_some_table(:header_column, {:column => 'value'})
           true
         when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
@@ -504,6 +512,49 @@ module PageObjectWrapper
       else # next_page == nil
         return found
       end
+    end
+
+    def select_row_from(table, query)
+      conditions = query.clone
+      conditions.delete(:number)
+      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      t = @@browser.table(table.locator_value)
+      found_row = {}
+      candidate_rows = nil
+      raise ArgumentError, "argument should be a meaningful Hash, got #{query.inspect}" if not query.is_a?(Hash) or query.empty?
+      if query.has_key?(:number) and query[:number].class != Fixnum
+        raise ArgumentError, "arguments key :number should have Integer value, got #{query[:number].class}"
+      end
+      if not conditions.empty? and (conditions.keys.collect(&:class).uniq != [Symbol] or conditions.values.collect(&:class).uniq != [String])
+        raise ArgumentError, "arguments hash should be like :symbol => 'a string' (for all columns except :number), got #{query.inspect}"
+      end
+      
+      if query.has_key? :number
+        candidate_rows = [t[query[:number]]]
+        query.delete(:number)
+      else
+        candidate_rows = t.rows
+      end
+
+      candidate_rows.each{ |r|
+        conditions_met = true
+        unless query.empty?
+          query.each_key{ |column_name|
+            raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
+            column_index = table.header_value.index(column_name)
+            conditions_met = false if r[column_index].text != query[column_name]
+          }
+        end
+        if conditions_met
+          column_index = 0
+          r.cells.each{ |cell| 
+            found_row[table.header_value[column_index]] = cell
+            column_index += 1
+          }
+          return found_row
+        end
+      }
+      return nil
     end
 
     def run_each_subpage(p, opts=nil, &block)
