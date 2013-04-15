@@ -7,17 +7,21 @@ module PageObjectWrapper
   @@domain = nil
   @@browser = nil
   @@language = :english
+  @@current_page = nil
+  @@current_action_result = nil
+  @@current_table_row = nil
+  @@current_table_cell = nil
 
   def self.domain=val
     @@domain=val
   end
 
   def self.use_browser b
-    PageObject.browser = b
+    @@browser = b
   end
 
   def self.browser
-    PageObject.browser
+    @@browser
   end
 
   def self.define_page(label, &block)
@@ -28,11 +32,16 @@ module PageObjectWrapper
   end
 
   def self.current_page
-    PageObject.current_page
+    @@current_page
+  end
+
+  def self.current_page= page_object
+    @@current_page = page_object
   end
 
   def self.current_page? label
-    PageObject.current_page? label
+    PageObject.map_current_page label
+    true
   end
 
   def self.load(path_to_pages='.')

@@ -15,9 +15,7 @@ require pwd + '/known_elements'
 module PageObjectWrapper
   class PageObject < DslElementWithLocator
     attr_reader :esets, :elements, :actions, :aliases, :validators, :tables, :paginations, :uniq_element_type, :uniq_element_hash
-    @@browser = nil
     @@pages = []
-    @@current_page = nil
 
     REQUIRED_ELEMENT_WAIT_PERIOD = 10
     FEED_ALL = Regexp.new(/^feed_all$/)
@@ -170,7 +168,7 @@ module PageObjectWrapper
     end
 
     def self.open_page label, optional_hash=nil
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil?
       raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
       page_object = PageObject.find_page_object(label)
       url = ''
@@ -184,11 +182,11 @@ module PageObjectWrapper
           url.gsub!(/:#{k.to_s}/, v)
         }
       end
-      @@browser.goto url
+      PageObjectWrapper.browser.goto url
     end
 
     def self.map_current_page label
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil?
       raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
       page_object = PageObject.find_page_object(label)
       page_object.elements.select{ |e| e.required_value == true }.each{ |required_element|
@@ -196,19 +194,10 @@ module PageObjectWrapper
           watir_element = return_watir_element required_element
           watir_element.wait_until_present REQUIRED_ELEMENT_WAIT_PERIOD
         rescue Watir::Wait::TimeoutError => e
-          raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{@@browser.url} (#{e.message})" if not watir_element.present?
+          raise PageObjectWrapper::UnmappedPageObject, "#{label} <=> #{PageObjectWrapper.browser.url} (#{e.message})" if not watir_element.present?
         end
       }
-      @@current_page = page_object
-    end
-
-    def self.current_page? label
-      self.map_current_page label
-      true
-    end
-
-    def self.current_page
-      @@current_page
+      PageObjectWrapper.current_page = page_object
     end
 
     def self.pages
@@ -216,11 +205,11 @@ module PageObjectWrapper
     end
 
     def self.browser=(val)
-      @@browser = val
+      PageObjectWrapper.browser = val
     end
 
     def self.browser
-      @@browser
+      PageObjectWrapper.browser
     end
 
     def elements_set(label, &block)
@@ -359,9 +348,9 @@ module PageObjectWrapper
     def self.return_watir_element(e)
       el = nil
       if e.locator_value.is_a? Hash
-        el = @@browser.send e.type, e.locator_value
+        el = PageObjectWrapper.browser.send e.type, e.locator_value
       elsif e.locator_value.is_a? String
-        el = @@browser.instance_eval e.locator_value
+        el = PageObjectWrapper.browser.instance_eval e.locator_value
       end
       el
     end
@@ -371,7 +360,7 @@ module PageObjectWrapper
     end
 
     def feed_elements(elements, *args)
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       menu_name, cheef_menu = nil, nil
       
       if args[0].is_a? Symbol
@@ -405,7 +394,7 @@ module PageObjectWrapper
             else
               # this is an element which does not support input (e.g. button) => skipping it
               next
-              #raise PageObjectWrapper::UnableToFeedObject, to_tree(@@current_page, e) + ' check element type'
+              #raise PageObjectWrapper::UnableToFeedObject, to_tree(PageObjectWrapper.current_page, e) + ' check element type'
             end
           end
       }
@@ -430,27 +419,27 @@ module PageObjectWrapper
 
 
     def fire_action(a, *args)
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       block = (a.is_a? Action)? a.fire_block_value : action_for(a.action_value).fire_block_value
-      block_result = @@browser.instance_exec *args, &block
+      block_result = PageObjectWrapper.browser.instance_exec *args, &block
       if not a.next_page_value.nil?
         self.class.map_current_page a.next_page_value
-        return @@current_page
+        return PageObjectWrapper.current_page
       else
         return block_result
       end 
     end
 
     def run_validator(v, *args)
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-      @@browser.instance_exec *args, &v.validate_block_value
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      PageObjectWrapper.browser.instance_exec *args, &v.validate_block_value
     end
 
     def select_from(table, header, *args)
       where = args[0]
       next_page = args[1]
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-      t = @@browser.table(table.locator_value)
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      t = PageObjectWrapper.browser.table(table.locator_value)
       raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
       raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
       search_for_index = table.header_value.index(header)
@@ -517,8 +506,8 @@ module PageObjectWrapper
     def select_row_from(table, query)
       conditions = query.clone
       conditions.delete(:number)
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-      t = @@browser.table(table.locator_value)
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      t = PageObjectWrapper.browser.table(table.locator_value)
       found_row = {}
       candidate_rows = nil
       raise ArgumentError, "argument should be a meaningful Hash, got #{query.inspect}" if not query.is_a?(Hash) or query.empty?
@@ -558,12 +547,12 @@ module PageObjectWrapper
     end
 
     def run_each_subpage(p, opts=nil, &block)
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       limit = opts[:limit] if not opts.nil?
       raise PageObjectWrapper::InvalidPagination, opts.inspect if limit < 0 if not limit.nil?
 
-      @@browser.instance_eval "(#{p.locator_value}).wait_until_present"
-      current_link = @@browser.instance_eval p.locator_value
+      PageObjectWrapper.browser.instance_eval "(#{p.locator_value}).wait_until_present"
+      current_link = PageObjectWrapper.browser.instance_eval p.locator_value
       raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not current_link.present?
       current_page_number = p.finds_value.to_i
       counter = 0
@@ -576,28 +565,28 @@ module PageObjectWrapper
         block.call self
         current_page_number += 1
         current_link_locator = p.locator_value.gsub( p.finds_value.to_s, current_page_number.to_s )
-        current_link = @@browser.instance_eval current_link_locator
+        current_link = PageObjectWrapper.browser.instance_eval current_link_locator
         counter += 1
       end
     end
 
     def open_subpage p, n, *args
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
-      @@browser.instance_eval "(#{p.locator_value.to_s}).wait_until_present"
-      pagination_link = @@browser.instance_eval p.locator_value
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      PageObjectWrapper.browser.instance_eval "(#{p.locator_value.to_s}).wait_until_present"
+      pagination_link = PageObjectWrapper.browser.instance_eval p.locator_value
       raise PageObjectWrapper::InvalidPagination, p.locator_value+'; '+p.finds_value if not pagination_link.present?
       n_th_link_locator = p.locator_value.gsub( p.finds_value.to_s, n.to_s )
-      @@browser.instance_eval "(#{n_th_link_locator}).wait_until_present"
-      n_th_link = @@browser.instance_eval n_th_link_locator
+      PageObjectWrapper.browser.instance_eval "(#{n_th_link_locator}).wait_until_present"
+      n_th_link = PageObjectWrapper.browser.instance_eval n_th_link_locator
       n_th_link.click
       self.class.map_current_page self.label_value
       self
     end
 
     def press e
-      raise PageObjectWrapper::BrowserNotFound if @@browser.nil? or not @@browser.exist?
+      raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       watir_element = PageObject.return_watir_element e
-      raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} not found in #{@@current_page}"\
+      raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} not found in #{PageObjectWrapper.current_page}"\
         if not watir_element.present?
       raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} does not respond to #{e.press_action_value}"\
         if not watir_element.respond_to? e.press_action_value
