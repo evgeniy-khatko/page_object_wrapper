@@ -59,58 +59,58 @@ module PageObjectWrapper
         when has_eset?(method_name)
           # page_object.some_elements_set
           eset = eset_for(method_name)
-          PageObjectWrapper.current_action_result = PageObject.return_array_of_watir_elements(eset)
+          PageObjectWrapper.current_result = PageObject.return_array_of_watir_elements(eset)
         when has_element?(method_name)
           # page_object.some_element
           element = element_for(method_name)
-          PageObjectWrapper.current_action_result = PageObject.return_watir_element element
+          PageObjectWrapper.current_result = PageObject.return_watir_element element
         when FEED_ALL.match(method_name)
           # page_object.feed_all(:fresh_food)
-          PageObjectWrapper.current_action_result = feed_elements(@elements, *args)
+          PageObjectWrapper.current_result = feed_elements(@elements, *args)
         when (FEED.match(method_name) and has_eset?($1))
           # page_object.feed_some_elements_set(:fresh_food)
           eset = eset_for($1)
-          PageObjectWrapper.current_action_result = feed_elements(eset.elements, *args)
+          PageObjectWrapper.current_result = feed_elements(eset.elements, *args)
         when (FEED.match(method_name) and has_element?($1))
           # page_object.feed_some_element(:fresh_food)
           e = element_for($1)
           if [true, false].include? args[0] or args[0].is_a? String 
-            PageObjectWrapper.current_action_result = feed_field(e, args[0])
+            PageObjectWrapper.current_result = feed_field(e, args[0])
           else
-            PageObjectWrapper.current_action_result = feed_elements([e], *args)
+            PageObjectWrapper.current_result = feed_elements([e], *args)
           end
         when (FIRE_ACTION.match(method_name) and has_action?($1))
           # page_object.fire_some_action
           a = action_for($1)
-          PageObjectWrapper.current_action_result = fire_action(a, *args)
+          PageObjectWrapper.current_result = fire_action(a, *args)
         when (FIRE_ACTION.match(method_name) and has_alias?($1))
           # page_object.fire_some_action
           a = alias_for($1)
-          PageObjectWrapper.current_action_result = fire_action(a, *args)
+          PageObjectWrapper.current_result = fire_action(a, *args)
         when (VALIDATE.match(method_name) and has_validator?($1))
           # page_object.validate_something
           v = validator_for($1)
-          PageObjectWrapper.current_action_result = run_validator(v, *args)
+          PageObjectWrapper.current_result = run_validator(v, *args)
         when (SELECT_FROM.match(method_name) and has_table?($1))
           # page_object.select_from_some_table(:header_column, {:column => 'value'})
           table = table_for($1)
-          PageObjectWrapper.current_table_cell = select_from(table, *args)
+          PageObjectWrapper.current_result = select_from(table, *args)
         when (SELECT_ROW_FROM.match(method_name) and has_table?($1))
           # page_object.select_row_from_some_table(:number => 1, :column1 => value1, :column2 => value3, ...)
           table = table_for($1)
-          PageObjectWrapper.current_table_row = select_row_from(table, args[0])
+          PageObjectWrapper.current_result = select_row_from(table, args[0])
         when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
           # page_object.each_pagination
           pagination = pagination_for($1)
-          PageObjectWrapper.current_action_result = run_each_subpage(pagination, *args, &block)
+          PageObjectWrapper.current_result = run_each_subpage(pagination, *args, &block)
         when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
           # page_object.open_padination(1)
           pagination = pagination_for($1)
-          PageObjectWrapper.current_action_result = open_subpage(pagination, *args)
+          PageObjectWrapper.current_result = open_subpage(pagination, *args)
         when (PRESS.match(method_name) and has_element?($1))
           # page_object.press_element
           element = element_for($1)
-          PageObjectWrapper.current_action_result = press(element)
+          PageObjectWrapper.current_result = press(element)
         else
           super
       end

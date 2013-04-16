@@ -10,33 +10,28 @@ describe "returned values" do
   
   it "returns corresponding values" do
     tp = PageObjectWrapper.open_page :some_test_page
-    res = PageObjectWrapper.current_page
-    res.should be_a PageObjectWrapper::PageObject
-    res.label_value.should eq :some_test_page
+    PageObjectWrapper.current_page.should be_a PageObjectWrapper::PageObject
+    PageObjectWrapper.current_page?(:some_test_page).should eq true
 
     tp.feed_tf 'text'
-    res = PageObjectWrapper.current_action_result
-    res.should be_a Watir::TextField
-    res.value.should eq 'text'
+    PageObjectWrapper.current_result.should be_a Watir::TextField
+    PageObjectWrapper.current_result?(:value, 'text').should eq true
 
     tp.feed_test_elements :loud
-    res = PageObjectWrapper.current_action_result
-    res.should be_a Array
-    res.collect(&:value).should eq ["bar", "tf food", "ta food", "1", "2", "on", "on", "one", "one"]
+    expected = ["bar", "tf food", "ta food", "1", "2", "on", "on", "one", "one"]
+    PageObjectWrapper.current_result.should be_a Array
+    PageObjectWrapper.current_result?("collect(&:value)", expected).should eq true
 
     tp = tp.fire_press_cool_button
-    res = PageObjectWrapper.current_action_result
-    res.should be_a PageObjectWrapper::PageObject
-    res.label_value.should eq :test_page_with_table
+    PageObjectWrapper.current_result.should be_a PageObjectWrapper::PageObject
+    PageObjectWrapper.current_result?(:label_value, :test_page_with_table).should eq true
     
     tp.select_from_test_table(:column_1, :row => 0)
-    res = PageObjectWrapper.current_table_cell
-    res.should be_a Watir::TableCell
-    res.text.should eq '42'
+    PageObjectWrapper.current_result.should be_a Watir::TableCell
+    PageObjectWrapper.current_result?(:text, '42').should eq true
 
     tp.select_row_from_test_table(:number => 0)
-    res = PageObjectWrapper.current_table_row
-    res.should be_a Hash
-    res[:column_1].text.should eq '42'
+    PageObjectWrapper.current_result.should be_a Hash
+    PageObjectWrapper.current_result?("fetch(:column_1).text", '42').should eq true
   end
 end

@@ -7,9 +7,7 @@ module PageObjectWrapper
   @@domain = nil
   @@browser = nil
   @@current_page = nil
-  @@current_action_result = nil
-  @@current_table_row = nil
-  @@current_table_cell = nil
+  @@current_result = nil
 
   def self.domain=val
     @@domain=val
@@ -38,33 +36,22 @@ module PageObjectWrapper
     @@current_page = page_object
   end
 
-  def self.current_action_result= res
-    @@current_action_result = res
-  end
-
-  def self.current_action_result
-    @@current_action_result
-  end
-
-  def self.current_table_row= res
-    @@current_table_row = res
-  end
-
-  def self.current_table_row
-    @@current_table_row
-  end
-
-  def self.current_table_cell= res
-    @@current_table_cell = res
-  end
-
-  def self.current_table_cell
-    @@current_table_cell
-  end
-
   def self.current_page? label
     PageObject.map_current_page label
     true
+  end
+
+  def self.current_result= res
+    @@current_result = res
+  end
+
+  def self.current_result
+    @@current_result
+  end
+
+  def self.current_result? post_processing, excpected_value
+    real_value = @@current_result.instance_eval post_processing.to_s
+    real_value == excpected_value
   end
 
   def self.load(path_to_pages='.')
