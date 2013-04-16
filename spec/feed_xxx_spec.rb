@@ -24,9 +24,9 @@ describe "page_object.feed_xxx" do
     end
 
     it "returns current page object" do
-      @tp.feed_tf_standalone(:quite).should be_a PageObjectWrapper::PageObject
-      @tp.feed_test_elements(:quite).should be_a PageObjectWrapper::PageObject
-      @tp.feed_all(:quite).should be_a PageObjectWrapper::PageObject
+      @tp.feed_tf_standalone(:quite).should be_a Array
+      @tp.feed_test_elements(:quite).should be_a Array
+      @tp.feed_all(:quite).should be_a Array
     end
 
     describe "feed_standalone_element" do 

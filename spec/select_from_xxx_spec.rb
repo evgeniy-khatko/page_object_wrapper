@@ -94,8 +94,8 @@ describe "page_object.select_from_xxx" do
         end
         context "found by row number" do
           it "returns found cells" do
-            tp.select_from_table_without_header(:column_0, :row => 2).text.should eq 'Iceland'
-            tp.select_from_table_with_header(:country, :row => 3).text.should eq 'Norway'
+            tp.select_from_table_without_header(:column_0, :row => 2).text.should eq 'Finland'
+            tp.select_from_table_with_header(:country, :row => 3).text.should eq 'Iceland'
           end
           it "returns nil" do
             tp.select_from_table_with_header(:country, :row => 123).should eq nil

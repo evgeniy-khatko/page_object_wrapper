@@ -50,14 +50,14 @@ describe "PageObjectWrapper.open_page" do
           begin
             PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com')
           rescue PageObjectWrapper::UnmappedPageObject
-            PageObjectWrapper::PageObject.browser.url.should =~ /google.\w+\/:path/
+            PageObjectWrapper.browser.url.should =~ /google.\w+\/:path/
           end
         end
       end
       context "all dynamic parameters specified" do
         it "opens page with all parameters replaced with specified" do
           PageObjectWrapper.open_page(:dynamic_url_page, :domain => 'google.com', :path => 'advanced_search')
-          PageObjectWrapper::PageObject.browser.url.should =~ /google.\w+\/advanced_search/
+          PageObjectWrapper.browser.url.should =~ /google.\w+\/advanced_search/
         end
       end
     end

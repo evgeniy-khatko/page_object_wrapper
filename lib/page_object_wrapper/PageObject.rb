@@ -59,58 +59,58 @@ module PageObjectWrapper
         when has_eset?(method_name)
           # page_object.some_elements_set
           eset = eset_for(method_name)
-          PageObject.return_array_of_watir_elements(eset)
+          PageObjectWrapper.current_action_result = PageObject.return_array_of_watir_elements(eset)
         when has_element?(method_name)
           # page_object.some_element
           element = element_for(method_name)
-          PageObject.return_watir_element element
+          PageObjectWrapper.current_action_result = PageObject.return_watir_element element
         when FEED_ALL.match(method_name)
           # page_object.feed_all(:fresh_food)
-          feed_elements(@elements, *args)
+          PageObjectWrapper.current_action_result = feed_elements(@elements, *args)
         when (FEED.match(method_name) and has_eset?($1))
           # page_object.feed_some_elements_set(:fresh_food)
           eset = eset_for($1)
-          feed_elements(eset.elements, *args)
+          PageObjectWrapper.current_action_result = feed_elements(eset.elements, *args)
         when (FEED.match(method_name) and has_element?($1))
           # page_object.feed_some_element(:fresh_food)
           e = element_for($1)
           if [true, false].include? args[0] or args[0].is_a? String 
-            feed_field(e, args[0])
+            PageObjectWrapper.current_action_result = feed_field(e, args[0])
           else
-            feed_elements([e], *args)
+            PageObjectWrapper.current_action_result = feed_elements([e], *args)
           end
         when (FIRE_ACTION.match(method_name) and has_action?($1))
           # page_object.fire_some_action
           a = action_for($1)
-          fire_action(a, *args)
+          PageObjectWrapper.current_action_result = fire_action(a, *args)
         when (FIRE_ACTION.match(method_name) and has_alias?($1))
           # page_object.fire_some_action
           a = alias_for($1)
-          fire_action(a, *args)
+          PageObjectWrapper.current_action_result = fire_action(a, *args)
         when (VALIDATE.match(method_name) and has_validator?($1))
           # page_object.validate_something
           v = validator_for($1)
-          run_validator(v, *args)
+          PageObjectWrapper.current_action_result = run_validator(v, *args)
         when (SELECT_FROM.match(method_name) and has_table?($1))
           # page_object.select_from_some_table(:header_column, {:column => 'value'})
           table = table_for($1)
-          select_from(table, *args)
+          PageObjectWrapper.current_table_cell = select_from(table, *args)
         when (SELECT_ROW_FROM.match(method_name) and has_table?($1))
           # page_object.select_row_from_some_table(:number => 1, :column1 => value1, :column2 => value3, ...)
           table = table_for($1)
-          select_row_from(table, args[0])
+          PageObjectWrapper.current_table_row = select_row_from(table, args[0])
         when (PAGINATION_EACH.match(method_name) and has_pagination?($1))
           # page_object.each_pagination
           pagination = pagination_for($1)
-          run_each_subpage(pagination, *args, &block)
+          PageObjectWrapper.current_action_result = run_each_subpage(pagination, *args, &block)
         when (PAGINATION_OPEN.match(method_name) and has_pagination?($1))
           # page_object.open_padination(1)
           pagination = pagination_for($1)
-          open_subpage(pagination, *args)
+          PageObjectWrapper.current_action_result = open_subpage(pagination, *args)
         when (PRESS.match(method_name) and has_element?($1))
           # page_object.press_element
           element = element_for($1)
-          press(element)
+          PageObjectWrapper.current_action_result = press(element)
         else
           super
       end
@@ -202,14 +202,6 @@ module PageObjectWrapper
 
     def self.pages
       @@pages
-    end
-
-    def self.browser=(val)
-      PageObjectWrapper.browser = val
-    end
-
-    def self.browser
-      PageObjectWrapper.browser
     end
 
     def elements_set(label, &block)
@@ -362,6 +354,7 @@ module PageObjectWrapper
     def feed_elements(elements, *args)
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       menu_name, cheef_menu = nil, nil
+      watir_elements = []
       
       if args[0].is_a? Symbol
         menu_name = args[0]
@@ -381,6 +374,7 @@ module PageObjectWrapper
           food = e.menu_value[menu_name].to_s
         end
         watir_element = PageObject.return_watir_element e
+        watir_elements << watir_element
         case watir_element
           when Watir::CheckBox
             watir_element.when_present.set eval(food) if ["true", "false"].include? food
@@ -398,7 +392,7 @@ module PageObjectWrapper
             end
           end
       }
-      self
+      watir_elements
     end
 
     def feed_field(e, value)
@@ -415,6 +409,7 @@ module PageObjectWrapper
           watir_element.when_present.set value 
         end
       end
+      watir_element
     end
 
 
@@ -460,7 +455,7 @@ module PageObjectWrapper
         if where.keys.first == :row # finding by row number
           raise ArgumentError, "#{where.values.first.inspect} not Integer" if not ( where.values.first.is_a? Integer)
           begin 
-            found = t.rows[search_value+1].cells[search_for_index] # +1 because we want rows to start from 0 (similar to columns)
+            found = t.rows[search_value].cells[search_for_index] # +1 because we want rows to start from 0 (similar to columns)
           rescue Watir::Exception::UnknownObjectException
             found = nil
           end
@@ -550,6 +545,7 @@ module PageObjectWrapper
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       limit = opts[:limit] if not opts.nil?
       raise PageObjectWrapper::InvalidPagination, opts.inspect if limit < 0 if not limit.nil?
+      result = nil
 
       PageObjectWrapper.browser.instance_eval "(#{p.locator_value}).wait_until_present"
       current_link = PageObjectWrapper.browser.instance_eval p.locator_value
@@ -562,12 +558,13 @@ module PageObjectWrapper
         current_link.when_present.click
         self.class.map_current_page self.label_value
         current_link.wait_while_present # waiting for the page to load by waiting current_link to become inactive
-        block.call self
+        result = block.call self
         current_page_number += 1
         current_link_locator = p.locator_value.gsub( p.finds_value.to_s, current_page_number.to_s )
         current_link = PageObjectWrapper.browser.instance_eval current_link_locator
         counter += 1
       end
+      result
     end
 
     def open_subpage p, n, *args

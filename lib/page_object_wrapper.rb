@@ -6,7 +6,6 @@ require pwd + 'page_object_wrapper/PageObject'
 module PageObjectWrapper
   @@domain = nil
   @@browser = nil
-  @@language = :english
   @@current_page = nil
   @@current_action_result = nil
   @@current_table_row = nil
@@ -37,6 +36,30 @@ module PageObjectWrapper
 
   def self.current_page= page_object
     @@current_page = page_object
+  end
+
+  def self.current_action_result= res
+    @@current_action_result = res
+  end
+
+  def self.current_action_result
+    @@current_action_result
+  end
+
+  def self.current_table_row= res
+    @@current_table_row = res
+  end
+
+  def self.current_table_row
+    @@current_table_row
+  end
+
+  def self.current_table_cell= res
+    @@current_table_cell = res
+  end
+
+  def self.current_table_cell
+    @@current_table_cell
   end
 
   def self.current_page? label
