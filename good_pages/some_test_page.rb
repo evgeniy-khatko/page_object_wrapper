@@ -101,7 +101,7 @@ PageObjectWrapper.define_page(:some_test_page) do
 
   table(:table_with_header) do
     locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
-    header [:country, :total_area, :land_area]
+    header [:country, :total_area, :land_area, :link, :checkbox]
   end
 
   validator(:textarea_value) do |expected|

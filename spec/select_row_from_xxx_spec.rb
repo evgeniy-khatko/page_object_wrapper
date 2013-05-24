@@ -51,6 +51,12 @@ describe "page_object.select_from_xxx" do
         t_row = tp.select_row_from_table_with_header(:number => 1, :country => 'Denmark')
         t_row.should be_a Hash
         t_row[:country].text.should eq 'Denmark'
+        t_row = tp.select_row_from_table_with_header(:checkbox => 'false')
+        t_row.should be_a Hash
+        t_row[:country].text.should eq 'Denmark'
+        t_row = tp.select_row_from_table_with_header(:checkbox => 'true')
+        t_row.should be_a Hash
+        t_row[:country].text.should eq 'Norway'
       end
     end
 
@@ -60,6 +66,9 @@ describe "page_object.select_from_xxx" do
         t_row.should be_a Hash
         t_row[:column_0].text.should eq 'Denmark'
         t_row = tp.select_row_from_table_without_header(:column_0 => 'Denmark')
+        t_row.should be_a Hash
+        t_row[:column_0].text.should eq 'Denmark'
+        t_row = tp.select_row_from_table_without_header(:column_4 => 'false')
         t_row.should be_a Hash
         t_row[:column_0].text.should eq 'Denmark'
         t_row = tp.select_row_from_table_without_header(:number => 1, :column_0 => 'Denmark')

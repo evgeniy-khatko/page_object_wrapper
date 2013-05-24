@@ -39,8 +39,8 @@ describe "page_object.select_from_xxx" do
       it "raises ArgumentError if second_arg's key is :row and second_arg's value not Integer" do
         expect{ tp.select_from_table_without_header(:column_1, { :row => "a string" }) }.to raise_error ArgumentError, "\"a string\" not Integer"
       end
-      it "raises Watir::Exception::UnknownObjectException if requested for non existing column" do
-        expect{ tp.select_from_table_without_header(:column_3).text }.to raise_error(Watir::Exception::UnknownObjectException)
+      it "raises Watir::Exception::UnknownObjectException if column inside header but not present in table" do
+        expect{ tp.select_from_table_without_header(:column_99).text }.to raise_error(Watir::Exception::UnknownObjectException)
       end
       
       context "next_page specified" do
@@ -57,14 +57,14 @@ describe "page_object.select_from_xxx" do
 
     context "where == nil" do
       context "next_page not specified" do
-        it "returns last row value from provided column" do
+        it "returns middle row value from provided column" do
           tp.select_from_table_without_header(:column_0).text.should eq 'Iceland'
           tp.select_from_table_without_header(:column_1).text.should eq '103,000'
           tp.select_from_table_without_header(:column_2).text.should eq '100,250'
         end
       end
       context "next_page specified" do
-        it "returns last row value from provided column" do
+        it "returns middle row value from provided column" do
           tp.select_from_table_without_header(:column_0, nil, :some_test_page).should eq PageObjectWrapper.receive_page(:some_test_page)
         end
       end
@@ -76,6 +76,8 @@ describe "page_object.select_from_xxx" do
           it "returns found cells" do
             tp.select_from_table_without_header(:column_0, :column_1 => '103,000').text.should eq 'Iceland'
             tp.select_from_table_with_header(:country, :total_area => '337,030').text.should eq 'Finland'
+            tp.select_from_table_with_header(:country, :checkbox => 'false').text.should eq 'Denmark' # last found row
+            tp.select_from_table_with_header(:country, :checkbox => 'true').text.should eq 'Norway'
           end
           it "returns nil" do
             tp.select_from_table_without_header(:column_0, :column_1 => '123').should eq nil
@@ -86,6 +88,8 @@ describe "page_object.select_from_xxx" do
           it "returns found cells" do
             tp.select_from_table_without_header(:column_0, :column_1 => /103/).text.should eq 'Iceland'
             tp.select_from_table_with_header(:country, :total_area => /337/).text.should eq 'Finland'
+            tp.select_from_table_with_header(:country, :checkbox => 'fal').should eq nil
+            tp.select_from_table_with_header(:country, :checkbox => 'tr').should eq nil
           end
           it "returns nil" do
             tp.select_from_table_without_header(:column_0, :column_1 => /123/).should eq nil

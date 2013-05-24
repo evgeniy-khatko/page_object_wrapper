@@ -464,13 +464,25 @@ module PageObjectWrapper
           t.rows.each{|r|
             if search_value.is_a? String
               begin 
-                found = r.cells[search_for_index] if r.cells[search_in_index].text == search_value
+                if r.cells[search_in_index].checkbox.present? and r.cells[search_in_index].checkbox.set?.to_s == search_value
+                  found = r.cells[search_for_index] 
+                  break
+                elsif r.cells[search_in_index].radio.present? and r.cells[search_in_index].radio.set?.to_s == search_value
+                  found = r.cells[search_for_index] 
+                  break
+                elsif r.cells[search_in_index].text == search_value
+                  found = r.cells[search_for_index] 
+                  break
+                end
               rescue Watir::Exception::UnknownObjectException
                 found = nil
               end
             elsif search_value.is_a? Regexp
               begin
-                found = r.cells[search_for_index] if search_value.match(r.cells[search_in_index].text)
+                if search_value.match(r.cells[search_in_index].text)
+                  found = r.cells[search_for_index] 
+                  break
+                end
               rescue Watir::Exception::UnknownObjectException
                 found = nil
               end
@@ -526,7 +538,15 @@ module PageObjectWrapper
           query.each_key{ |column_name|
             raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
             column_index = table.header_value.index(column_name)
-            conditions_met = false if r[column_index].text != query[column_name]
+            column_text = ''
+            if r[column_index].checkbox.present?
+              column_text = r[column_index].checkbox.set?.to_s
+            elsif r[column_index].radio.present?
+              column_text = r[column_index].radio.set?.to_s
+            else
+              column_text = r[column_index].text
+            end
+            conditions_met = false if column_text != query[column_name]
           }
         end
         if conditions_met

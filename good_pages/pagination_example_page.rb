@@ -29,6 +29,6 @@ PageObjectWrapper.define_page(:google_invalid_pagination) do
   uniq_input :id => 'gbqfq'
 
   pagination :invalid_pagination do
-    locator "table(:id => 'nav').tr.td.a(:text => '1000')", '1000'
+    locator "table(:id => 'nav').tr.td.a(:text => '10')", '10'
   end
 end
