@@ -434,6 +434,7 @@ module PageObjectWrapper
       where = args[0]
       next_page = args[1]
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
       t = PageObjectWrapper.browser.table(table.locator_value)
       raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
       raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
@@ -514,6 +515,7 @@ module PageObjectWrapper
       conditions = query.clone
       conditions.delete(:number)
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
       t = PageObjectWrapper.browser.table(table.locator_value)
       found_row = {}
       candidate_rows = nil
