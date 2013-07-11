@@ -42,13 +42,13 @@ describe "page_object.select_from_xxx" do
 
     context "table with header" do
       it "returns first found row excluding table header" do
-        t_row = tp.select_row_from_table_with_header(:number => 1)
+        t_row = tp.select_row_from_table_with_header(:number => 2)
         t_row.should be_a Hash
-        t_row[:country].text.should eq 'Denmark'
+        t_row[:land_area].text.should eq '42,370'
         t_row = tp.select_row_from_table_with_header(:country => 'Denmark')
         t_row.should be_a Hash
         t_row[:country].text.should eq 'Denmark'
-        t_row = tp.select_row_from_table_with_header(:number => 1, :country => 'Denmark')
+        t_row = tp.select_row_from_table_with_header(:number => 2, :country => 'Denmark')
         t_row.should be_a Hash
         t_row[:country].text.should eq 'Denmark'
         t_row = tp.select_row_from_table_with_header(:checkbox => 'false')
@@ -62,7 +62,7 @@ describe "page_object.select_from_xxx" do
 
     context "table without header" do
       it "returns first found row including table header" do
-        t_row = tp.select_row_from_table_without_header(:number => 1)
+        t_row = tp.select_row_from_table_without_header(:number => 2)
         t_row.should be_a Hash
         t_row[:column_0].text.should eq 'Denmark'
         t_row = tp.select_row_from_table_without_header(:column_0 => 'Denmark')
@@ -71,7 +71,7 @@ describe "page_object.select_from_xxx" do
         t_row = tp.select_row_from_table_without_header(:column_4 => 'false')
         t_row.should be_a Hash
         t_row[:column_0].text.should eq 'Denmark'
-        t_row = tp.select_row_from_table_without_header(:number => 1, :column_0 => 'Denmark')
+        t_row = tp.select_row_from_table_without_header(:number => 2, :column_0 => 'Denmark')
         t_row.should be_a Hash
         t_row[:column_0].text.should eq 'Denmark'
       end

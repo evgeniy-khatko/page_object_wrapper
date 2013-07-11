@@ -477,6 +477,7 @@ module PageObjectWrapper
                 end
               rescue Watir::Exception::UnknownObjectException
                 found = nil
+                next
               end
             elsif search_value.is_a? Regexp
               begin
@@ -486,6 +487,7 @@ module PageObjectWrapper
                 end
               rescue Watir::Exception::UnknownObjectException
                 found = nil
+                next
               end
             else
               raise ArgumentError, "#{search_value} not a Regexp or String"
@@ -541,12 +543,19 @@ module PageObjectWrapper
             raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
             column_index = table.header_value.index(column_name)
             column_text = ''
-            if r[column_index].checkbox.present?
-              column_text = r[column_index].checkbox.set?.to_s
-            elsif r[column_index].radio.present?
-              column_text = r[column_index].radio.set?.to_s
-            else
-              column_text = r[column_index].text
+            # workaround for rows with small number of columns
+            begin
+              if r[column_index].checkbox.present?
+                column_text = r[column_index].checkbox.set?.to_s
+              elsif r[column_index].radio.present?
+                column_text = r[column_index].radio.set?.to_s
+              else
+                column_text = r[column_index].text
+              end
+            rescue Watir::Exception::UnknownObjectException
+              # just moving to next row
+              conditions_met = false
+              break
             end
             conditions_met = false if column_text != query[column_name]
           }
