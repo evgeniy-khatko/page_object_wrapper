@@ -72,7 +72,7 @@ PageObjectWrapper.define_page(:some_test_page) do
     end
 
     select(:s2) do
-      locator "form(:action => 'http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echo.cgi').select(:id => 'f11')"
+      locator "form(:action => 'test_page_with_table.html').select(:id => 'f11')"
       menu :loud, 'one'
     end
   end

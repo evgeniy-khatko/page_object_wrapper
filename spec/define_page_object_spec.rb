@@ -16,6 +16,10 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
+    describe "page_object label alias" do
+      it_should_behave_like "a label alias"
+    end
+
     describe "page_object locator" do
       it_should_behave_like "a locator"
       its(:locator_value) { should be_a String }
@@ -75,6 +79,10 @@ describe "define_page_object" do
     describe "element label" do
       it_should_behave_like "a label"
     end
+
+    describe "element label alias" do
+      it_should_behave_like "a label alias"
+    end
     
     describe "element locator" do
       it_should_behave_like "a locator"
@@ -102,6 +110,10 @@ describe "define_page_object" do
     describe "elements_set label" do
       it_should_behave_like "a label"
     end
+
+    describe "elements_set label alias" do
+      it_should_behave_like "a label alias"
+    end
   end
 
   context "element inside elements_set" do
@@ -111,6 +123,10 @@ describe "define_page_object" do
 
     describe "element label" do
       it_should_behave_like "a label"
+    end
+
+    describe "element label alias" do
+      it_should_behave_like "a label alias"
     end
     
     describe "element locator" do
@@ -140,6 +156,10 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
+    describe "action label alias" do
+      it_should_behave_like "a label alias"
+    end
+
     describe "action attributes" do
       it { should respond_to(:next_page_value) }
       it { should respond_to(:fire_block_value) }
@@ -156,6 +176,10 @@ describe "define_page_object" do
 
     describe "alias label" do
       it_should_behave_like "a label"
+    end
+
+    describe "alias label alias" do
+      it_should_behave_like "a label alias"
     end
 
     describe "alias attributes" do
@@ -176,6 +200,10 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
+    describe "validator label alias" do
+      it_should_behave_like "a label alias"
+    end
+
     describe "validator attributes" do
       it { should respond_to(:validate_block_value) }
       its(:validate_block_value) { should be_a Proc }
@@ -189,6 +217,10 @@ describe "define_page_object" do
 
     describe "table label" do
       it_should_behave_like "a label"
+    end
+
+    describe "table label alias" do
+      it_should_behave_like "a label alias"
     end
   
     describe "element locator" do
@@ -224,6 +256,10 @@ describe "define_page_object" do
 
     describe "pagination label" do
       it_should_behave_like "a label"
+    end
+
+    describe "pagination label alias" do
+      it_should_behave_like "a label alias"
     end
   
     describe "pagination locator" do

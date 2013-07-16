@@ -12,6 +12,10 @@ module PageObjectWrapper
       @required = false
     end
 
+    def type_value
+      @type
+    end
+
     def menu food_type, value
       @menu[food_type] = value
     end

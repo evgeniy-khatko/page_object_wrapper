@@ -15,6 +15,9 @@ module PageObjectWrapper
 
   def self.use_browser b
     @@browser = b
+    @@browser.class.send :define_method, :label_alias do |sym|
+      # do nothing
+    end
   end
 
   def self.browser

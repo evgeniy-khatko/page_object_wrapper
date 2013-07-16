@@ -10,9 +10,9 @@ describe "PageObjectWrapper.load" do
       begin
         PageObjectWrapper.load(File.dirname(__FILE__)+'/../bad_pages')
       rescue Exception => e
-      #  puts '=============='
-      #  puts e.message
-      #  puts '=============='
+        #puts '=============='
+        #puts e.message
+        #puts '=============='
         e.should be_a(PageObjectWrapper::Load)
         e.message.should == 'page_object("some_page_with_lost_of_errors"):
 	label "some_page_with_lost_of_errors" not a Symbol
@@ -33,6 +33,15 @@ element(:e):
 element(:e):
 	element :e already defined
 	locator {} not a meaningful Hash or String
+element(:dublicate_tf):
+	element :dublicate_tf already defined
+	locator nil not a meaningful Hash or String
+element(:another_dublicate_tf):
+	element :another_dublicate_tf already defined
+	label aliases ["not a symbol"] not an Array of Symbols
+	locator nil not a meaningful Hash or String
+element(:area):
+	locator nil not a meaningful Hash or String
 element(""):
 	element "" already defined
 	label "" not a Symbol
@@ -49,6 +58,8 @@ alias(""):
 	next_page "a string" unknown page_object
 	action "unknown action" not known Action
 validator(""):
+	label "" not a Symbol
+table(""):
 	label "" not a Symbol
 table(:some_table):
 	header [] not a meaningful Array

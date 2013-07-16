@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe "returned values" do
   before(:all){ 
-    @b = Watir::Browser.new
+    @b = Watir::Browser.new :chrome
     PageObjectWrapper.use_browser @b 
   }
 

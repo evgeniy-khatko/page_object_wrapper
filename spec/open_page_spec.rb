@@ -10,7 +10,7 @@ describe "PageObjectWrapper.open_page" do
   context "browser is opened" do
     
     before(:all){ 
-      @b = Watir::Browser.new
+      @b = Watir::Browser.new :chrome
       PageObjectWrapper.use_browser @b 
     }
 

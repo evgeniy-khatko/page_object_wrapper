@@ -11,7 +11,7 @@ describe "page_object.feed_xxx" do
 
   context "browser is opened" do
     before(:all){
-      @b = Watir::Browser.new
+      @b = Watir::Browser.new :chrome
       PageObjectWrapper.use_browser @b
     }
     before(:each){ @tp = PageObjectWrapper.open_page(:some_test_page) }

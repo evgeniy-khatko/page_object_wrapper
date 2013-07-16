@@ -15,7 +15,17 @@ module PageObjectWrapper
 
     def initialize label
       @label = label
+      @label_aliases = []
     end
+
+    def label_alias la
+      @label_aliases << la
+    end
+
+    def label_alias_value
+      @label_aliases
+    end
+
   protected
     def to_tree(*args)
       args.collect(&:label_value).join(" -> ")

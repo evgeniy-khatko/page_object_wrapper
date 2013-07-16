@@ -169,7 +169,6 @@ module PageObjectWrapper
 
     def self.open_page label, optional_hash=nil
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil?
-      raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
       page_object = PageObject.find_page_object(label)
       url = ''
       url += PageObjectWrapper.domain if page_object.locator_value[0]=='/'
@@ -187,7 +186,6 @@ module PageObjectWrapper
 
     def self.map_current_page label
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil?
-      raise PageObjectWrapper::UnknownPageObject, label.inspect if not @@pages.collect(&:label_value).include?(label)
       page_object = PageObject.find_page_object(label)
       page_object.elements.select{ |e| e.required_value == true }.each{ |required_element|
         begin
@@ -219,6 +217,10 @@ module PageObjectWrapper
 
     def action(label, next_page=nil, &block)
       a = Action.new(label, next_page, &block)
+      begin
+        a.instance_eval( &block )
+      rescue # rescue any exception, because only action_alias method is known for POW inside
+      end    # current block
       @actions << a
       a
     end
@@ -232,6 +234,10 @@ module PageObjectWrapper
 
     def validator(label, &block)
       v = Validator.new(label, &block)
+      begin
+        v.instance_eval( &block )
+      rescue # rescue any exception, because only action_alias method is known for POW inside
+      end    # current block
       @validators << v
       v
     end
@@ -255,20 +261,23 @@ module PageObjectWrapper
     def validate
       output = []
       # commented out; already defined pages will e redifined with new definitions
-      raise PageObjectWrapper::Load, "\tpage_object #{label_value.inspect} already defined\n" if labeled(@@pages).count(label_value) > 1
+      raise PageObjectWrapper::Load, "\tpage_object #{label_value.inspect} already defined\n" if PageObject.labeled(@@pages).count(label_value) > 1
       output << "\tlabel #{label_value.inspect} not a Symbol\n" if not label_value.is_a?(Symbol)
+      output << "\tlabel aliases #{label_alias_value.inspect} not an Array of Symbols\n" if (not label_alias_value.empty?) and label_alias_value.collect(&:class).uniq != [Symbol]
       output << "\tlocator #{locator_value.inspect} not a meaningful String\n" if not locator_value.is_a?(String) or locator_value.empty?
       @esets.each{|eset|
         eset_output = []
-        eset_output << "\telements_set #{eset.label_value.inspect} already defined\n" if labeled(@esets).count(eset.label_value) > 1
+        eset_output << "\telements_set #{eset.label_value.inspect} already defined\n" if PageObject.labeled(@esets).count(eset.label_value) > 1
         eset_output << "\tlabel #{eset.label_value.inspect} not a Symbol\n" if not eset.label_value.is_a?(Symbol)
+        eset_output << "\tlabel aliases #{eset.label_alias_value.inspect} not an Array of Symbols\n" if (not eset.label_alias_value.empty?) and eset.label_alias_value.collect(&:class).uniq != [Symbol]
         eset_output.unshift "elements_set(#{eset.label_value.inspect}):\n" if not eset_output.empty?
         output += eset_output
       }
       @elements.each{|e|
         element_output = []
-        element_output << "\telement #{e.label_value.inspect} already defined\n" if labeled(@elements).count(e.label_value) > 1
+        element_output << "\telement #{e.label_value.inspect} already defined\n" if PageObject.labeled(@elements).count(e.label_value) > 1
         element_output << "\tlabel #{e.label_value.inspect} not a Symbol\n" if not e.label_value.is_a?(Symbol)
+        element_output << "\tlabel aliases #{e.label_alias_value.inspect} not an Array of Symbols\n" if (not e.label_alias_value.empty?) and e.label_alias_value.collect(&:class).uniq != [Symbol]
         element_output << "\tlocator #{e.locator_value.inspect} not a meaningful Hash or String\n" if (not e.locator_value.is_a?(Hash) and not e.locator_value.is_a?(String)) \
                                                                                                       or e.locator_value.empty?
         element_output << "\tmenu #{e.menu_value.inspect} not properly defined (must be { :food_type => 'a string' | true | false })\n" if (not e.menu_value.empty?) and \
@@ -280,11 +289,12 @@ module PageObjectWrapper
       }
       @actions.each{|a|
         action_output = []
-        action_output << "\taction #{a.label_value.inspect} already defined\n" if labeled(@actions).count(a.label_value) > 1
+        action_output << "\taction #{a.label_value.inspect} already defined\n" if PageObject.labeled(@actions).count(a.label_value) > 1
         action_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
+        action_output << "\tlabel aliases #{a.label_alias_value.inspect} not an Array of Symbols\n" if (not a.label_alias_value.empty?) and a.label_alias_value.collect(&:class).uniq != [Symbol]
         if not a.next_page_value.nil?
           action_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
-          action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+          action_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not PageObject.labeled(@@pages).include?(a.next_page_value)
         end
         action_output << "\tfire event is not a Proc\n" if not a.fire_block_value.is_a?(Proc)
         action_output.unshift "action(#{a.label_value.inspect}):\n" if not action_output.empty?
@@ -292,34 +302,40 @@ module PageObjectWrapper
       }
       @aliases.each{|a|
         alias_output = []
-        alias_output << "\talias #{a.label_value.inspect} already defined\n" if labeled(@aliases).count(a.label_value) > 1
+        alias_output << "\talias #{a.label_value.inspect} already defined\n" if PageObject.labeled(@aliases).count(a.label_value) > 1
         alias_output << "\tlabel #{a.label_value.inspect} not a Symbol\n" if not a.label_value.is_a?(Symbol)
+        alias_output << "\tlabel aliases #{a.label_alias_value.inspect} not an Array of Symbols\n" if (not a.label_alias_value.empty?) and a.label_alias_value.collect(&:class).uniq != [Symbol]
         if not a.next_page_value.nil?
           alias_output << "\tnext_page #{a.next_page_value.inspect} not a Symbol\n" if not a.next_page_value.is_a? Symbol
-          alias_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not labeled(@@pages).include?(a.next_page_value)
+          alias_output << "\tnext_page #{a.next_page_value.inspect} unknown page_object\n" if not PageObject.labeled(@@pages).include?(a.next_page_value)
         end
-        alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not labeled(@actions).include? a.action_value
+        alias_output << "\taction #{a.action_value.inspect} not known Action\n" if not PageObject.labeled(@actions).include? a.action_value
         alias_output.unshift "alias(#{a.label_value.inspect}):\n" if not alias_output.empty?
         output += alias_output
       }
       @validators.each{|v|
         validator_output = []
-        validator_output << "\tvalidator #{v.label_value.inspect} already defined\n" if labeled(@validators).count(v.label_value) > 1
+        validator_output << "\tvalidator #{v.label_value.inspect} already defined\n" if PageObject.labeled(@validators).count(v.label_value) > 1
         validator_output << "\tlabel #{v.label_value.inspect} not a Symbol\n" if not v.label_value.is_a?(Symbol)
+        validator_output << "\tlabel aliases #{v.label_alias_value.inspect} not an Array of Symbols\n" if (not v.label_alias_value.empty?) and v.label_alias_value.collect(&:class).uniq != [Symbol]
         validator_output << "\tvalidation block is not a Proc\n" if not v.validate_block_value.is_a?(Proc)
         validator_output.unshift "validator(#{v.label_value.inspect}):\n" if not validator_output.empty?
         output += validator_output
       }
       @tables.each{|t|
         table_output = []
+        table_output << "\ttable #{t.label_value.inspect} already defined\n" if PageObject.labeled(@tables).count(t.label_value) > 1
+        table_output << "\tlabel #{t.label_value.inspect} not a Symbol\n" if not t.label_value.is_a?(Symbol)
+        table_output << "\tlabel aliases #{t.label_alias_value.inspect} not an Array of Symbols\n" if (not t.label_alias_value.empty?) and t.label_alias_value.collect(&:class).uniq != [Symbol]
         table_output << "\theader #{t.header_value.inspect} not a meaningful Array\n" if not t.header_value.is_a?(Array) or t.header_value.empty?
         table_output.unshift "table(#{t.label_value.inspect}):\n" if not table_output.empty?
         output += table_output
       }
       @paginations.each{|p|
         pagination_output = []
-        pagination_output << "\tpagination #{p.label_value.inspect} already defined\n" if labeled(@paginations).count(p.label_value) > 1
+        pagination_output << "\tpagination #{p.label_value.inspect} already defined\n" if PageObject.labeled(@paginations).count(p.label_value) > 1
         pagination_output << "\tlabel #{p.label_value.inspect} not a Symbol\n" if not p.label_value.is_a?(Symbol)
+        pagination_output << "\tlabel aliases #{p.label_alias_value.inspect} not an Array of Symbols\n" if (not p.label_alias_value.empty?) and p.label_alias_value.collect(&:class).uniq != [Symbol]
         pagination_output << "\tlocator #{p.locator_value.inspect} not a meaningful String\n" if not p.locator_value.is_a?(String) or p.locator_value.empty?
         pagination_output << "\t\"#{p.finds_value}\" not found in #{p.locator_value}\n" if not p.locator_value =~ /#{p.finds_value.to_s}/
         pagination_output.unshift "pagination(#{p.label_value.inspect}):\n" if not pagination_output.empty?
@@ -332,9 +348,8 @@ module PageObjectWrapper
   private
 
     def self.find_page_object(l)
-      p = @@pages.select{|p| p.label_value == l}.first
-      raise ArgumentError, "#{l.inspect} not known Page" if p.nil?
-      p
+      raise PageObjectWrapper::UnknownPageObject, l.inspect unless PageObject.labeled( @@pages ).include? l
+      @@pages.select{|p| p.label_value == l or p.label_alias_value.include?(l)}.first
     end
     
     def self.return_watir_element(e)
@@ -443,7 +458,7 @@ module PageObjectWrapper
 
       if not next_page.nil?
         raise ArgumentError, "#{next_page.inspect} not a Symbol" if not next_page.is_a? Symbol
-        raise ArgumentError, "#{next_page.inspect} not known Page" if not labeled(@@pages).include?(next_page)
+        raise ArgumentError, "#{next_page.inspect} not known Page" if not PageObject.labeled(@@pages).include?(next_page)
       end
 
       if not where.nil?
@@ -614,24 +629,30 @@ module PageObjectWrapper
     def press e
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       watir_element = PageObject.return_watir_element e
-      raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} not found in #{PageObjectWrapper.current_page}"\
+      raise PageObjectWrapper::InvalidElement, "#{e.type_value} #{e.locator_value} not found in #{PageObjectWrapper.current_page.label_value}"\
         if not watir_element.present?
-      raise PageObjectWrapper::InvalidElement, "Element #{e.locator_value} does not respond to #{e.press_action_value}"\
+      raise PageObjectWrapper::InvalidElement, "#{e.type_value} #{e.locator_value} does not respond to #{e.press_action_value}"\
         if not watir_element.respond_to? e.press_action_value
       watir_element.when_present.send e.press_action_value 
       watir_element
     end
 
-    def labeled(ary)
-      ary.collect(&:label_value)
+    def self.labeled(ary)
+      labels = ary.collect(&:label_value)
+      label_aliases = []
+      ary.each{ |obj| label_aliases += obj.label_alias_value }
+      labels + label_aliases
     end
 
     [:eset, :element, :table, :pagination, :action, :alias, :validator].each{|el|
       PageObject.send :define_method, 'has_'+el.to_s+'?' do |label| # has_xxx?(label)
-        labeled(instance_variable_get("@#{el.to_s.pluralize}")).include?(label.to_sym)
+        PageObject.labeled(instance_variable_get("@#{el.to_s.pluralize}")).include?(label.to_sym)
       end
       PageObject.send :define_method, el.to_s+'_for' do |label| # xxx_for(label)
-        instance_variable_get("@#{el.to_s.pluralize}")[labeled(instance_variable_get("@#{el.to_s.pluralize}")).index(label.to_sym)]
+        instance_variable_get("@#{el.to_s.pluralize}").each{ |obj|
+          return obj if obj.label_value == label.to_sym or obj.label_alias_value.include? label.to_sym
+        }
+        raise ArgumentError, "cant define method #{ el.to_s + '_for' } because @#{el.to_s.pluralize} doesnt have element with label #{label.inspect}"
       end
     }
   end

@@ -80,9 +80,9 @@ describe "page_object.select_from_xxx" do
     context "several rows found" do
       it "returns first found row" do
         table_page = tp.fire_press_cool_button
-        t_row = table_page.select_row_from_test_table(:column_1 => 'Default text.')
+        t_row = table_page.select_row_from_test_table(:column_1 => 'one')
         t_row.should be_a Hash
-        t_row[:column_0].text.should eq 'text'
+        t_row[:column_0].text.should eq 'select1'
       end
     end
 

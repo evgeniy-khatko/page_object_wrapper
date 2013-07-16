@@ -27,6 +27,18 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
   action('','a string') do
   end
 
+  text_field :dublicate_tf do
+    label_alias :dublicate_tf
+  end
+
+  text_field :another_dublicate_tf do
+    label_alias 'not a symbol'
+  end
+
+  textarea :area do
+    label_alias :another_dublicate_tf
+  end
+
   validator('') do
   end
 
@@ -34,6 +46,7 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
 
   table('') do
   end
+
   table(:some_table) do
     header []
   end
@@ -43,3 +56,6 @@ PageObjectWrapper.define_page('some_page_with_lost_of_errors') do
   end
 end
 
+#PageObjectWrapper.define_page :dublicate_label do
+#  label_alias :dublicate_label
+#end
