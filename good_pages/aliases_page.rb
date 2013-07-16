@@ -48,7 +48,6 @@ PageObjectWrapper.define_page(:page_with_aliases) do
   end
 
   action(:press_cool_button, :test_page_with_table) do
-    label_alias :action_alias
     button(:name => 'foo').when_present.click
   end
 
@@ -56,11 +55,6 @@ PageObjectWrapper.define_page(:page_with_aliases) do
     label_alias :table_alias
     locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
     header [:country, :total_area, :land_area, :link, :checkbox]
-  end
-
-  validator(:textarea_value) do |expected|
-    label_alias :textarea_value_alias
-    textarea(:id => 'f2').value == expected
   end
 
   pagination :pagination do

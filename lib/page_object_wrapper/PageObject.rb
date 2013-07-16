@@ -217,10 +217,6 @@ module PageObjectWrapper
 
     def action(label, next_page=nil, &block)
       a = Action.new(label, next_page, &block)
-      begin
-        a.instance_eval( &block )
-      rescue # rescue any exception, because only action_alias method is known for POW inside
-      end    # current block
       @actions << a
       a
     end
@@ -234,10 +230,6 @@ module PageObjectWrapper
 
     def validator(label, &block)
       v = Validator.new(label, &block)
-      begin
-        v.instance_eval( &block )
-      rescue # rescue any exception, because only action_alias method is known for POW inside
-      end    # current block
       @validators << v
       v
     end

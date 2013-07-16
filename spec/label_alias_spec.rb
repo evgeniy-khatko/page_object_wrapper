@@ -37,10 +37,8 @@ describe "label_aliases" do
     PageObjectWrapper.current_result?("collect(&:value)", expected).should eq true
   end
 
-  it "works with action" do
-    tp.fire_action_alias
-    PageObjectWrapper.current_result.should be_a PageObjectWrapper::PageObject
-    PageObjectWrapper.current_result?(:label_value, :test_page_with_table).should eq true
+  it "does not work with action or validator" do
+    expect{ tp.fire_action_alias }.to raise_error NoMethodError
   end
     
   it "works with table alias" do

@@ -156,10 +156,6 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
-    describe "action label alias" do
-      it_should_behave_like "a label alias"
-    end
-
     describe "action attributes" do
       it { should respond_to(:next_page_value) }
       it { should respond_to(:fire_block_value) }
@@ -178,10 +174,6 @@ describe "define_page_object" do
       it_should_behave_like "a label"
     end
 
-    describe "alias label alias" do
-      it_should_behave_like "a label alias"
-    end
-
     describe "alias attributes" do
       it { should respond_to(:next_page_value) }
       it { should respond_to(:action_value) }
@@ -198,10 +190,6 @@ describe "define_page_object" do
 
     describe "validator label" do
       it_should_behave_like "a label"
-    end
-
-    describe "validator label alias" do
-      it_should_behave_like "a label alias"
     end
 
     describe "validator attributes" do
