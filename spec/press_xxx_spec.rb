@@ -31,7 +31,7 @@ describe "page_object.press_xxx" do
 
     context "element does not present" do
       it "raises InvalidElement error" do
-        expect{ tp.press_invalid_button }.to raise_error(PageObjectWrapper::InvalidElement)
+        expect{ tp.press_invalid_button }.to raise_error(Watir::Wait::TimeoutError)
       end
     end
 

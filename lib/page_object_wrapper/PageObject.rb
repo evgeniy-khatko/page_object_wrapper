@@ -621,8 +621,6 @@ module PageObjectWrapper
     def press e
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
       watir_element = PageObject.return_watir_element e
-      raise PageObjectWrapper::InvalidElement, "#{e.type_value} #{e.locator_value} not found in #{PageObjectWrapper.current_page.label_value}"\
-        if not watir_element.present?
       raise PageObjectWrapper::InvalidElement, "#{e.type_value} #{e.locator_value} does not respond to #{e.press_action_value}"\
         if not watir_element.respond_to? e.press_action_value
       watir_element.when_present.send e.press_action_value 
