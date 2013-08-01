@@ -384,14 +384,15 @@ module PageObjectWrapper
         watir_elements << watir_element
         case watir_element
           when Watir::CheckBox
-            watir_element.when_present.set eval(food) if ["true", "false"].include? food
+            food = eval food if ['true', 'false'].include? food
+            watir_element.when_present.set food if [true, false].include? food
           when Watir::Radio
-            watir_element.when_present.set if food=="true"          
+            watir_element.when_present.set if ['true', true].include? food
           when Watir::Select
             watir_element.select food if watir_element.include? food
           else
             if watir_element.respond_to?(:set)
-              watir_element.when_present.set food if food!=''
+              watir_element.when_present.set food if food != ''
             else
               # this is an element which does not support input (e.g. button) => skipping it
               next
@@ -406,11 +407,12 @@ module PageObjectWrapper
       watir_element = PageObject.return_watir_element e
       case watir_element
       when Watir::CheckBox
-          watir_element.when_present.set value if [true, false].include? value
+        value = eval value if ['true', 'false'].include? value
+        watir_element.when_present.set value if [true, false].include? value
       when Watir::Radio
-          watir_element.when_present.set if value==true          
+        watir_element.when_present.set if ['true', true].include? value
       when Watir::Select
-          watir_element.select value if watir_element.include? value
+        watir_element.select value if watir_element.include? value
       else
         if watir_element.respond_to?(:set)
           watir_element.when_present.set value 
@@ -524,8 +526,6 @@ module PageObjectWrapper
       conditions = query.clone
       conditions.delete(:number)
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
-      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
-      t = PageObjectWrapper.browser.table(table.locator_value)
       found_row = {}
       candidate_rows = nil
       raise ArgumentError, "argument should be a meaningful Hash, got #{query.inspect}" if not query.is_a?(Hash) or query.empty?
@@ -535,15 +535,13 @@ module PageObjectWrapper
       if not conditions.empty? and (conditions.keys.collect(&:class).uniq != [Symbol] or conditions.values.collect(&:class).uniq != [String])
         raise ArgumentError, "arguments hash should be like :symbol => 'a string' (for all columns except :number), got #{query.inspect}"
       end
+
+      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
+      t = PageObjectWrapper.browser.table(table.locator_value)
       
       if query.has_key? :number
-        candidate_rows = [t[query[:number]]]
+        r = t[query[:number]]
         query.delete(:number)
-      else
-        candidate_rows = t.rows
-      end
-
-      candidate_rows.each{ |r|
         conditions_met = true
         unless query.empty?
           query.each_key{ |column_name|
@@ -575,7 +573,42 @@ module PageObjectWrapper
           }
           return found_row
         end
-      }
+      else
+        t.rows.each{ |r|
+          conditions_met = true
+          unless query.empty?
+            query.each_key{ |column_name|
+              raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
+              column_index = table.header_value.index(column_name)
+              column_text = ''
+              # workaround for rows with small number of columns
+              begin
+                if r[column_index].checkbox.present?
+                  column_text = r[column_index].checkbox.set?.to_s
+                elsif r[column_index].radio.present?
+                  column_text = r[column_index].radio.set?.to_s
+                else
+                  column_text = r[column_index].text
+                end
+              rescue Watir::Exception::UnknownObjectException
+                # just moving to next row
+                conditions_met = false
+                break
+              end
+              conditions_met = false if column_text != query[column_name]
+            }
+          end
+          if conditions_met
+            column_index = 0
+            r.cells.each{ |cell| 
+              found_row[table.header_value[column_index]] = cell
+              column_index += 1
+            }
+            return found_row
+          end
+        }
+      end
+
       return nil
     end
 

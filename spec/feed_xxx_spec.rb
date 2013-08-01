@@ -60,10 +60,18 @@ describe "page_object.feed_xxx" do
       it "FEEDS checkbox with true value" do
         @tp.feed_cb1(true)
         @b.checkbox(:id => 'f5').should be_set
+        @tp.feed_cb1(false)
+        @b.checkbox(:id => 'f5').should_not be_set
+        @tp.feed_cb1("true")
+        @b.checkbox(:id => 'f5').should be_set
+        @tp.feed_cb1("false")
+        @b.checkbox(:id => 'f5').should_not be_set
       end    
 
       it "FEEDS radio with true" do
         @tp.feed_rb1(true)
+        @b.radio(:id => 'f3').should be_set
+        @tp.feed_rb1("true")
         @b.radio(:id => 'f3').should be_set
       end    
 

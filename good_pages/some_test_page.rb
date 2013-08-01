@@ -57,7 +57,7 @@ PageObjectWrapper.define_page(:some_test_page) do
     checkbox(:cb1){ 
       locator :id => 'f5'
       menu :loud, true 
-      menu :quite, false
+      menu :quite, "false"
     }
 
     checkbox(:cb2){ 
