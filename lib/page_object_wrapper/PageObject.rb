@@ -562,7 +562,7 @@ module PageObjectWrapper
               conditions_met = false
               break
             end
-            conditions_met = false if column_text != query[column_name]
+            conditions_met = false if not column_text =~ /#{query[column_name]}/
           }
         end
         if conditions_met
@@ -574,6 +574,7 @@ module PageObjectWrapper
           return found_row
         end
       else
+        t.wait_until_present
         t.rows.each{ |r|
           conditions_met = true
           unless query.empty?
@@ -595,7 +596,7 @@ module PageObjectWrapper
                 conditions_met = false
                 break
               end
-              conditions_met = false if column_text != query[column_name]
+              conditions_met = false if not column_text =~ /#{query[column_name]}/
             }
           end
           if conditions_met
