@@ -100,7 +100,7 @@ PageObjectWrapper.define_page(:some_test_page) do
   end
 
   table(:table_with_header) do
-    locator :summary => 'Each row names a Nordic country and specifies its total area and land area, in square kilometers'
+    locator "div( :id => 'table_div' ).table"
     header [:country, :total_area, :land_area, :link, :checkbox]
   end
 

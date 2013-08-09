@@ -443,8 +443,8 @@ module PageObjectWrapper
       where = args[0]
       next_page = args[1]
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
-      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
-      t = PageObjectWrapper.browser.table(table.locator_value)
+      t = PageObject.return_watir_element table
+      t.wait_until_present
       raise ArgumentError, "#{header.inspect} not a Symbol" if not header.is_a? Symbol
       raise ArgumentError, "#{header.inspect} not in table header" if not table.header_value.include? header
       search_for_index = table.header_value.index(header)
@@ -536,8 +536,8 @@ module PageObjectWrapper
         raise ArgumentError, "arguments hash should be like :symbol => 'a string' (for all columns except :number), got #{query.inspect}"
       end
 
-      PageObjectWrapper.browser.table(table.locator_value).wait_until_present
-      t = PageObjectWrapper.browser.table(table.locator_value)
+      t = PageObject.return_watir_element table
+      t.wait_until_present
       
       if query.has_key? :number
         r = t[query[:number]]
@@ -576,6 +576,7 @@ module PageObjectWrapper
       else
         t.wait_until_present
         t.rows.each{ |r|
+          r.wait_until_present
           conditions_met = true
           unless query.empty?
             query.each_key{ |column_name|
