@@ -76,7 +76,7 @@ describe "page_object.select_from_xxx" do
           it "returns found cells" do
             tp.select_from_table_without_header(:column_1, :column_1 => '103,000').text.should eq '103,000'
             tp.select_from_table_with_header(:checkbox, :total_area => '324,220').checkbox.should be_checked
-            tp.select_from_table_with_header(:country, :checkbox => 'false').text.should eq 'Denmark' # last found row
+            tp.select_from_table_with_header(:country, :checkbox => 'false').text.should eq 'Sweden' # last found row
             tp.select_from_table_with_header(:country, :checkbox => 'true').text.should eq 'Norway'
           end
           it "returns nil" do

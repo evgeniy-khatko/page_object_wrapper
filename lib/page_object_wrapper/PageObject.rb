@@ -439,6 +439,21 @@ module PageObjectWrapper
       PageObjectWrapper.browser.instance_exec *args, &v.validate_block_value
     end
 
+    def get_cell_content cell
+      cell_content = rand(36**10).to_s(36)
+      begin
+        if cell.checkbox.exist?
+          cell_content = cell.checkbox.set?.to_s + cell.text
+        elsif cell.radio.exist?
+          cell_content = cell.radio.set?.to_s + cell.text
+        else
+          cell_content = cell.text
+        end
+      rescue Watir::Exception::UnknownObjectException
+      end
+      cell_content
+    end
+
     def select_from(table, header, *args)
       where = args[0]
       next_page = args[1]
@@ -472,34 +487,13 @@ module PageObjectWrapper
         else # finding by String or Regexp
           search_in_index = table.header_value.index(where.keys.first)
           t.rows.each{|r|
+            current_cell = r.cells[search_in_index]
             if search_value.is_a? String
-              begin 
-                if r.cells[search_in_index].checkbox.present? and r.cells[search_in_index].checkbox.set?.to_s == search_value
-                  found = r.cells[search_for_index] 
-                  break
-                elsif r.cells[search_in_index].radio.present? and r.cells[search_in_index].radio.set?.to_s == search_value
-                  found = r.cells[search_for_index] 
-                  break
-                elsif r.cells[search_in_index].text == search_value
-                  found = r.cells[search_for_index] 
-                  break
-                end
-              rescue Watir::Exception::UnknownObjectException
-                found = nil
-                next
-              end
+              cell_content = get_cell_content current_cell
+              found = r.cells[search_for_index] if cell_content == search_value
             elsif search_value.is_a? Regexp
-              begin
-                if search_value.match(r.cells[search_in_index].text)
-                  found = r.cells[search_for_index] 
-                  break
-                end
-              rescue Watir::Exception::UnknownObjectException
-                found = nil
-                next
-              end
-            else
-              raise ArgumentError, "#{search_value} not a Regexp or String"
+              cell_content = get_cell_content current_cell
+              found = r.cells[search_for_index] if search_value.match cell_content
             end
           }
         end
@@ -526,6 +520,8 @@ module PageObjectWrapper
       conditions = query.clone
       conditions.delete(:number)
       raise PageObjectWrapper::BrowserNotFound if PageObjectWrapper.browser.nil? or not PageObjectWrapper.browser.exist?
+      t = PageObject.return_watir_element table
+      t.wait_until_present
       found_row = {}
       candidate_rows = nil
       raise ArgumentError, "argument should be a meaningful Hash, got #{query.inspect}" if not query.is_a?(Hash) or query.empty?
@@ -535,34 +531,25 @@ module PageObjectWrapper
       if not conditions.empty? and (conditions.keys.collect(&:class).uniq != [Symbol] or conditions.values.collect(&:class).uniq != [String])
         raise ArgumentError, "arguments hash should be like :symbol => 'a string' (for all columns except :number), got #{query.inspect}"
       end
-
-      t = PageObject.return_watir_element table
-      t.wait_until_present
       
       if query.has_key? :number
-        r = t[query[:number]]
+        candidate_rows = [t[query[:number]]]
         query.delete(:number)
+      else
+        candidate_rows = t.rows
+      end
+
+      candidate_rows.each{ |r|
         conditions_met = true
         unless query.empty?
           query.each_key{ |column_name|
             raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
             column_index = table.header_value.index(column_name)
-            column_text = ''
-            # workaround for rows with small number of columns
-            begin
-              if r[column_index].checkbox.present?
-                column_text = r[column_index].checkbox.set?.to_s
-              elsif r[column_index].radio.present?
-                column_text = r[column_index].radio.set?.to_s
-              else
-                column_text = r[column_index].text
-              end
-            rescue Watir::Exception::UnknownObjectException
-              # just moving to next row
-              conditions_met = false
+            current_cell = r[column_index]
+            unless get_cell_content(current_cell) =~ /#{query[column_name]}/
+              conditions_met = false 
               break
             end
-            conditions_met = false if not column_text =~ /#{query[column_name]}/
           }
         end
         if conditions_met
@@ -573,44 +560,7 @@ module PageObjectWrapper
           }
           return found_row
         end
-      else
-        t.wait_until_present
-        t.rows.each{ |r|
-          r.wait_until_present
-          conditions_met = true
-          unless query.empty?
-            query.each_key{ |column_name|
-              raise ArgumentError, "column #{column_name.inspect} not in table header and not == :number" if not table.header_value.include?(column_name) 
-              column_index = table.header_value.index(column_name)
-              column_text = ''
-              # workaround for rows with small number of columns
-              begin
-                if r[column_index].checkbox.present?
-                  column_text = r[column_index].checkbox.set?.to_s
-                elsif r[column_index].radio.present?
-                  column_text = r[column_index].radio.set?.to_s
-                else
-                  column_text = r[column_index].text
-                end
-              rescue Watir::Exception::UnknownObjectException
-                # just moving to next row
-                conditions_met = false
-                break
-              end
-              conditions_met = false if not column_text =~ /#{query[column_name]}/
-            }
-          end
-          if conditions_met
-            column_index = 0
-            r.cells.each{ |cell| 
-              found_row[table.header_value[column_index]] = cell
-              column_index += 1
-            }
-            return found_row
-          end
-        }
-      end
-
+      }
       return nil
     end
 
